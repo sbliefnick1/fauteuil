@@ -1,0 +1,85 @@
+version: '3.6'
+services:
+    redis:
+        image: redis:4.0.8
+        
+    postgres:
+        image: postgres:10.3
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        # uncomment these lines to persist data on local filesystem
+            # - PGDATA=/var/lib/postgresql/data/pgdata
+        # volumes:
+            # - ./pgdata:/var/lib/postgresql/data/pgdata 
+        
+    webserver:
+        image: sbliefnick/fauteuil:latest
+        restart: always
+        depends_on:
+            - postgres 
+            - redis 
+        environment:
+            - LOAD_EX=n
+            # - FERNET_KEY=
+            - EXECUTOR=Celery
+            # - POSTGRES_USER=airflow
+            # - POSTGRES_PASSWORD=airflow 
+            # - POSTGRES_DB=airflow
+            # - REDIS_PASSWORD=redispass
+        volumes:
+            - ./dags:/usr/local/airflow/dags 
+        ports:
+            - "8080:8080"
+        command: webserver 
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+            
+    flower: 
+        image: sbliefnick/fauteuil:latest 
+        restart: always 
+        depends_on:
+            - redis 
+        environment:
+            - EXECUTOR=Celery 
+            # - REDIS_PASSWORD=redispass
+        ports:
+            - "5555:5555"
+        command: flower
+        
+    scheduler:
+        image: sbliefnick/fauteuil:latest 
+        restart: always 
+        depends_on: 
+            - webserver
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=
+            - EXECUTOR=Celery
+            # - POSTGRES_USER=airflow
+            # - POSTGRES_PASSWORD=airflow 
+            # - POSTGRES_DB=airflow
+            # - REDIS_PASSWORD=redispass
+        command: scheduler 
+        
+    worker:
+        image: sbliefnick/fauteuil:latest 
+        restart: always
+        depends_on: 
+            - scheduler
+        volumes:
+            - ./dags:/usr/local/airflow/dags 
+        environment:
+            - FERNET_KEY= 
+            - EXECUTOR=Celery 
+            # - POSTGRES_USER=airflow
+            # - POSTGRES_PASSWORD=airflow 
+            # - POSTGRES_DB=airflow
+            # - REDIS_PASSWORD=redispass
+        command: worker 
