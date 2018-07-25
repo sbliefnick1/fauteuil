@@ -1,85 +1,168 @@
-version: '3.6'
+version: '3.5'
 services:
     redis:
         image: redis:4.0.8
-        
+        ports:
+            - "6379:6379"
+        networks:
+            - skynet
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+            placement:
+                constraints: [node.labels.type == celred]
+
     postgres:
         image: postgres:10.3
         environment:
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
-        # uncomment these lines to persist data on local filesystem
-            # - PGDATA=/var/lib/postgresql/data/pgdata
-        # volumes:
-            # - ./pgdata:/var/lib/postgresql/data/pgdata 
+            - POSTGRES_USER_FILE=/run/secrets/pg_user 
+            - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
+            - POSTGRES_DB_FILE=/run/secrets/pg_db
+        volumes:
+            - pgdata:/var/lib/postgresql/data/
+        ports:
+            - "5432:5432"
+        networks:
+            - skynet 
+        deploy:
+            replicas: 1
+            placement:
+                constraints: [node.labels.type == postgres]
+        secrets:
+            - pg_user
+            - pg_password 
+            - pg_db
+            
+    flower: 
+        image: sbliefnick/fauteuil:latest
+        depends_on:
+            - redis 
+        environment:
+            - EXECUTOR=Celery 
+        networks:
+            - skynet 
+        ports:
+            - "5555:5555"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+            placement:
+                constraints: [node.labels.type == celred]
+        command: flower
         
     webserver:
         image: sbliefnick/fauteuil:latest
-        restart: always
         depends_on:
             - postgres 
             - redis 
         environment:
-            - LOAD_EX=n
-            # - FERNET_KEY=
+            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Celery
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow 
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
         volumes:
-            - ./dags:/usr/local/airflow/dags 
+            - pgdata:/var/lib/postgresql/data/
         ports:
             - "8080:8080"
-        command: webserver 
         healthcheck:
             test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
             interval: 30s
             timeout: 30s
             retries: 3
-            
-    flower: 
-        image: sbliefnick/fauteuil:latest 
-        restart: always 
-        depends_on:
-            - redis 
-        environment:
-            - EXECUTOR=Celery 
-            # - REDIS_PASSWORD=redispass
-        ports:
-            - "5555:5555"
-        command: flower
+        networks:
+            - skynet
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+            placement:
+                constraints: [node.role == manager]
+        secrets:
+            - ebi_db_conn 
+            - fernet_key
+            - flask_secret_key
+            - pg_user
+            - pg_password 
+            - pg_db
+        command: webserver 
         
     scheduler:
-        image: sbliefnick/fauteuil:latest 
-        restart: always 
+        image: sbliefnick/fauteuil:latest
         depends_on: 
             - webserver
+        networks: 
+            - skynet 
         volumes:
-            - ./dags:/usr/local/airflow/dags
+            - pgdata:/var/lib/postgresql/data/
         environment:
-            - LOAD_EX=n
-            - FERNET_KEY=
+            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Celery
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow 
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+            placement:
+                constraints: [node.role == manager]
+        secrets:
+            - ebi_db_conn 
+            - fernet_key
+            - flask_secret_key
+            - pg_user
+            - pg_password 
+            - pg_db
         command: scheduler 
         
     worker:
-        image: sbliefnick/fauteuil:latest 
-        restart: always
+        image: sbliefnick/fauteuil:latest
         depends_on: 
             - scheduler
-        volumes:
-            - ./dags:/usr/local/airflow/dags 
+        networks: 
+            - skynet 
         environment:
-            - FERNET_KEY= 
+            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Celery 
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow 
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
-        command: worker 
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: on-failure
+            placement:
+                constraints: [node.labels.type == worker]
+        secrets:
+            - ebi_db_conn 
+            - fernet_key
+            - flask_secret_key
+            - pg_user
+            - pg_password 
+            - pg_db
+        command: worker
+
+    visualizer:
+        image: dockersamples/visualizer:stable
+        ports: 
+            - "9090:8080"
+        stop_grace_period: 1m
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        deploy:
+            placement:
+                constraints: [node.role == manager]
+                
+networks:
+    skynet:
+    
+volumes:
+    pgdata:
+    
+secrets:
+    pg_user:
+        external: true
+    pg_password:
+        external: true
+    pg_db:
+        external: true 
+    fernet_key:
+        external: true 
+    flask_secret_key:
+        external: true 
+    ebi_db_conn:
+        external: true

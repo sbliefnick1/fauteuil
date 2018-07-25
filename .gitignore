@@ -1,5 +1,4 @@
-.git
-./secrets/*
-.idea
+secrets/*
+*.idea*
 config/odbc.ini
 config/freetds.conf

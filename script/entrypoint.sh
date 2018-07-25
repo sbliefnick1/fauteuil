@@ -2,18 +2,26 @@
 
 TRY_LOOP="20"
 
+: "${SECRETS:=/run/secrets}"
+
 : "${REDIS_HOST:="redis"}"
 : "${REDIS_PORT:="6379"}"
 : "${REDIS_PASSWORD:=""}"
 
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="5432"}"
-: "${POSTGRES_USER:="airflow"}"
-: "${POSTGRES_PASSWORD:="airflow"}"
-: "${POSTGRES_DB:="airflow"}"
+# : "${POSTGRES_USER:="airflow"}"
+# : "${POSTGRES_PASSWORD:="airflow"}"
+# : "${POSTGRES_DB:="airflow"}"
+: "${POSTGRES_USER:=$(cat $SECRETS/pg_user)}"
+: "${POSTGRES_PASSWORD:=$(cat $SECRETS/pg_password)}"
+: "${POSTGRES_DB:=$(cat $SECRETS/pg_db)}"
 
-: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
+# : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
+: "${AIRFLOW__CORE__FERNET_KEY:=$(cat $SECRETS/fernet_key)}"
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Sequential}Executor}"
+
+: "${AIRFLOW__WEBSERVER__SECRET_KEY:=$(cat $SECRETS/flask_secret_key)}"
 
 export \
   AIRFLOW__CELERY__BROKER_URL \
@@ -23,11 +31,6 @@ export \
   AIRFLOW__CORE__LOAD_EXAMPLES \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
   
-# Load DAGs exemples (default: Yes)
-if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]
-then
-  AIRFLOW__CORE__LOAD_EXAMPLES=False
-fi
 
 # Install custom python package if requirements.txt is present
 if [ -e "/requirements.txt" ]; then
@@ -62,14 +65,6 @@ wait_for_redis() {
   fi
 }
 
-wait_for_redis() {
-  # Wait for Redis if we are using it
-  if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]
-  then
-    wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
-  fi
-}
-
 AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
 AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
 AIRFLOW__CELERY__CELERY_RESULT_BACKEND="db+postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
@@ -79,11 +74,6 @@ case "$1" in
     wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
     wait_for_redis
     airflow initdb
-    if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ];
-    then
-      # With the "Local" executor it should all run in one container.
-      airflow scheduler &
-    fi
     exec airflow webserver
     ;;
   worker|scheduler)
