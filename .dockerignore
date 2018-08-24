@@ -1,5 +1,3 @@
 .git
 ./secrets/*
 .idea
-config/odbc.ini
-config/freetds.conf
