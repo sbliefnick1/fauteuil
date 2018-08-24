@@ -10,18 +10,14 @@ TRY_LOOP="20"
 
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="5432"}"
-# : "${POSTGRES_USER:="airflow"}"
-# : "${POSTGRES_PASSWORD:="airflow"}"
-# : "${POSTGRES_DB:="airflow"}"
-: "${POSTGRES_USER:=$(cat $SECRETS/pg_user)}"
-: "${POSTGRES_PASSWORD:=$(cat $SECRETS/pg_password)}"
-: "${POSTGRES_DB:=$(cat $SECRETS/pg_db)}"
+: "${POSTGRES_USER:=$(cat ${SECRETS}/pg_user)}"
+: "${POSTGRES_PASSWORD:=$(cat ${SECRETS}/pg_password)}"
+: "${POSTGRES_DB:=$(cat ${SECRETS}/pg_db)}"
 
-# : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
-: "${AIRFLOW__CORE__FERNET_KEY:=$(cat $SECRETS/fernet_key)}"
+: "${AIRFLOW__CORE__FERNET_KEY:=$(cat ${SECRETS}/fernet_key)}"
 : "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Sequential}Executor}"
 
-: "${AIRFLOW__WEBSERVER__SECRET_KEY:=$(cat $SECRETS/flask_secret_key)}"
+: "${AIRFLOW__WEBSERVER__SECRET_KEY:=$(cat ${SECRETS}/flask_secret_key)}"
 
 export \
   AIRFLOW__CELERY__BROKER_URL \
@@ -48,7 +44,7 @@ wait_for_port() {
   local j=0
   while ! nc -z "$host" "$port" >/dev/null 2>&1 < /dev/null; do
     j=$((j+1))
-    if [ $j -ge $TRY_LOOP ]; then
+    if [ ${j} -ge ${TRY_LOOP} ]; then
       echo >&2 "$(date) - $host:$port still not reachable, giving up"
       exit 1
     fi
