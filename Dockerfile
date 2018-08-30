@@ -62,7 +62,7 @@ RUN set -ex \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
     && pip install apache-airflow[celery,crypto,mssql,password,postgres]==$AIRFLOW_VERSION \
-    && pip install celery[redis]==4.1.0 \
+    && pip install celery[redis]==4.2.1 \
 	&& pip install pandas==0.22.0 \
 	&& pip install psycopg2 \ 
 	&& pip install pyodbc==4.0.16 \
@@ -89,6 +89,7 @@ COPY auxiliary ${AIRFLOW_HOME}/auxiliary/
 ENV PYTHONPATH ${AIRFLOW_HOME} 
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080 5555 8793 6379 5432 9090
 

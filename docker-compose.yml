@@ -27,6 +27,8 @@ services:
             - skynet 
         deploy:
             replicas: 1
+            restart_policy:
+                condition: on-failure
             placement:
                 constraints: [node.labels.type == postgres]
         secrets:
@@ -38,8 +40,6 @@ services:
         image: sbliefnick/fauteuil:latest
         depends_on:
             - redis 
-        environment:
-            - EXECUTOR=Celery 
         networks:
             - skynet 
         ports:
@@ -57,9 +57,6 @@ services:
         depends_on:
             - postgres 
             - redis 
-        environment:
-            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
         volumes:
             - pgdata:/var/lib/postgresql/data/
         ports:
@@ -94,9 +91,6 @@ services:
             - skynet 
         volumes:
             - pgdata:/var/lib/postgresql/data/
-        environment:
-            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
         deploy:
             replicas: 1
             restart_policy:
@@ -118,9 +112,6 @@ services:
             - scheduler
         networks: 
             - skynet 
-        environment:
-            # - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery 
         deploy:
             replicas: 2
             restart_policy:
@@ -144,6 +135,8 @@ services:
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
         deploy:
+            restart_policy:
+                condition: on-failure
             placement:
                 constraints: [node.role == manager]
                 

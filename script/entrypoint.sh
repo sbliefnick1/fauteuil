@@ -2,22 +2,27 @@
 
 TRY_LOOP="20"
 
-: "${SECRETS:=/run/secrets}"
+SECRETS="/run/secrets"
 
-: "${REDIS_HOST:="redis"}"
-: "${REDIS_PORT:="6379"}"
-: "${REDIS_PASSWORD:=""}"
+REDIS_HOST="redis"
+REDIS_PORT="6379"
+REDIS_PASSWORD=""
+REDIS_PREFIX=""
 
-: "${POSTGRES_HOST:="postgres"}"
-: "${POSTGRES_PORT:="5432"}"
-: "${POSTGRES_USER:=$(cat ${SECRETS}/pg_user)}"
-: "${POSTGRES_PASSWORD:=$(cat ${SECRETS}/pg_password)}"
-: "${POSTGRES_DB:=$(cat ${SECRETS}/pg_db)}"
+POSTGRES_HOST="postgres"
+POSTGRES_PORT="5432"
+POSTGRES_USER="$(cat ${SECRETS}/pg_user)"
+POSTGRES_PASSWORD="$(cat ${SECRETS}/pg_password)"
+POSTGRES_DB="$(cat ${SECRETS}/pg_db)"
 
-: "${AIRFLOW__CORE__FERNET_KEY:=$(cat ${SECRETS}/fernet_key)}"
-: "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:-Sequential}Executor}"
+AIRFLOW__CORE__FERNET_KEY="$(cat ${SECRETS}/fernet_key)"
+AIRFLOW__CORE__EXECUTOR="CeleryExecutor"
 
-: "${AIRFLOW__WEBSERVER__SECRET_KEY:=$(cat ${SECRETS}/flask_secret_key)}"
+AIRFLOW__WEBSERVER__SECRET_KEY="$(cat ${SECRETS}/flask_secret_key)"
+
+AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+AIRFLOW__CELERY__BROKER_URL="redis://${REDIS_PREFIX}${REDIS_HOST}:${REDIS_PORT}/1"
+AIRFLOW__CELERY__CELERY_RESULT_BACKEND="db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
 
 export \
   AIRFLOW__CELERY__BROKER_URL \
@@ -25,8 +30,7 @@ export \
   AIRFLOW__CORE__EXECUTOR \
   AIRFLOW__CORE__FERNET_KEY \
   AIRFLOW__CORE__LOAD_EXAMPLES \
-  AIRFLOW__CORE__SQL_ALCHEMY_CONN \
-  
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN
 
 # Install custom python package if requirements.txt is present
 if [ -e "/requirements.txt" ]; then
@@ -55,15 +59,11 @@ wait_for_port() {
 
 wait_for_redis() {
   # Wait for Redis if we are using it
-  if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]
-  then
+  if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
     wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
   fi
 }
 
-AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
-AIRFLOW__CELERY__CELERY_RESULT_BACKEND="db+postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
 
 case "$1" in
   webserver)
