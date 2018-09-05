@@ -2,3 +2,4 @@ secrets/*
 *.idea*
 config/odbc.ini
 config/freetds.conf
+./restart_test_nodes.sh

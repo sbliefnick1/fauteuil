@@ -1,4 +1,4 @@
-# VERSION 0.1
+# VERSION
 # AUTHOR Soren Bliefnick 
 # DESCRIPTION Airflow container for Swarm
 # BUILD docker build --rm -t sbliefnick/fauteuil .
@@ -80,9 +80,7 @@ RUN set -ex \
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
-COPY config/freetds.conf /etc/freetds/freetds.conf
-COPY config/odbc.ini /etc/odbc.ini
-COPY config/odbcinst.ini /etc/odbcinst.ini 
+COPY config/odbcinst.ini /etc/odbcinst.ini
 COPY dags ${AIRFLOW_HOME}/dags/ 
 COPY auxiliary ${AIRFLOW_HOME}/auxiliary/
 
@@ -90,6 +88,8 @@ ENV PYTHONPATH ${AIRFLOW_HOME}
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x /entrypoint.sh
+RUN chmod 776 /etc/freetds/freetds.conf
+RUN chmod 776 /etc/odbc.ini
 
 EXPOSE 8080 5555 8793 6379 5432 9090
 
