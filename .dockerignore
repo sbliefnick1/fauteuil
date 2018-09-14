@@ -1,4 +1,3 @@
 .git
 ./secrets/*
 .idea
-./restart_test_nodes.sh
