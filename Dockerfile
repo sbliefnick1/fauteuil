@@ -12,8 +12,9 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.9.0
+ARG AIRFLOW_VERSION=1.10.0
 ARG AIRFLOW_HOME=/usr/local/airflow
+ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -61,7 +62,7 @@ RUN set -ex \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
-    && pip install apache-airflow[celery,crypto,mssql,password,postgres]==$AIRFLOW_VERSION \
+    && pip install apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
     && pip install celery[redis]==4.2.1 \
 	&& pip install pandas==0.22.0 \
 	&& pip install psycopg2 \ 
