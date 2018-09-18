@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import os
-import json
 from datetime import datetime, timedelta
+import json
+import os
 from urllib.parse import quote_plus
 
 import pandas as pd
+import pendulum
 import sqlalchemy as sa
 
 from airflow import DAG
@@ -17,7 +18,7 @@ from auxiliary.outils import get_secret
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2018, 9, 12),
+    'start_date': datetime(2018, 9, 12, tzinfo=pendulum.timezone('America/Los_Angeles')),
     'email': ['sbliefnick@coh.org'],
     'email_on_failure': False,
     'email_on_retry': False,

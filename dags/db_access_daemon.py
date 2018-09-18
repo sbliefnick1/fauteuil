@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from time import sleep
 from datetime import datetime, timedelta
+from time import sleep
 from urllib.parse import quote_plus
 
+import pendulum
 import sqlalchemy as sa
 from sqlalchemy.exc import ProgrammingError
 
@@ -45,7 +46,7 @@ engine = sa.create_engine(f'mssql+pyodbc:///?odbc_connect={params}')
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2018, 7, 1),
+    'start_date': datetime(2018, 7, 1, tzinfo=pendulum.timezone('America/Los_Angeles')),
     'email': ['sbliefnick@coh.org'],
     'email_on_failure': False,
     'email_on_retry': False,

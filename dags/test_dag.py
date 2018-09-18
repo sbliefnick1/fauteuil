@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
+from datetime import datetime, timedelta
+
+import pendulum
+
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-
-from datetime import datetime, timedelta
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2018, 7, 1),
+    'start_date': datetime(2018, 7, 1, tzinfo=pendulum.timezone('America/Los_Angeles')),
     'email': ['sbliefnick@coh.org'],
     'email_on_failure': False,
     'email_on_retry': False,
