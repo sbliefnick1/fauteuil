@@ -57,18 +57,18 @@ RUN set -ex \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
-    && pip install Cython \
-    && pip install pytz \
-    && pip install pyOpenSSL \
-    && pip install ndg-httpsclient \
-    && pip install pyasn1 \
+    && pip install Cython==0.28.5 \
+    && pip install pytz==2018.5 \
+    && pip install pyOpenSSL==18.0.0 \
+    && pip install ndg-httpsclient==0.5.1 \
+    && pip install pyasn1==0.4.4 \
     && pip install apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
     && pip install celery[redis]==4.2.1 \
 	&& pip install pandas==0.22.0 \
-	&& pip install psycopg2 \ 
+	&& pip install psycopg2==2.7.5 \
 	&& pip install pyodbc==4.0.16 \
 	&& pip install SQLAlchemy==1.2.5 \
-	&& pip install tableauserverclient \
+	&& pip install tableauserverclient==0.7 \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
