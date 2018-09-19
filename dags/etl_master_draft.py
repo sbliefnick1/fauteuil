@@ -26,7 +26,7 @@ default_args = {
     'retry_delay': timedelta(minutes=2)
     }
 
-dag = DAG('etl_master_rework', default_args=default_args, schedule_interval='@daily')
+dag = DAG('etl_master_rework', default_args=default_args, catchup=False, schedule_interval='@daily')
 
 initial_sql = '''
 select p.name as proc_name
