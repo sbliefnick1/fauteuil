@@ -1,0 +1,40 @@
+version: '3.5'
+services:
+    redis:
+        deploy:
+            placement:
+                constraints: [node.labels.class == celred]
+
+    postgres:
+        deploy:
+            placement:
+                constraints: [node.labels.type == postgres]
+
+    flower:
+        image: sbliefnick/fauteuil:test-latest
+        deploy:
+            placement:
+                constraints: [node.labels.class == celred]
+
+    webserver:
+        image: sbliefnick/fauteuil:test-latest
+        deploy:
+            placement:
+                constraints: [node.role == manager]
+
+    scheduler:
+        image: sbliefnick/fauteuil:test-latest
+        deploy:
+            placement:
+                constraints: [node.role == manager]
+
+    worker:
+        image: sbliefnick/fauteuil:test-latest
+        deploy:
+            placement:
+                constraints: [node.labels.role == worker]
+
+    visualizer:
+        deploy:
+            placement:
+                constraints: [node.role == manager]
