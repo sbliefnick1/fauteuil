@@ -47,14 +47,6 @@ if [ -e "/requirements.txt" ]; then
     $(which pip) install --user -r /requirements.txt
 fi
 
-# sed -i "35s%executor\s=\s.*%executor = ${AIRFLOW__CORE__EXECUTOR}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "40s%sql_alchemy_conn\s=\s.*%sql_alchemy_conn = ${AIRFLOW__CORE__SQL_ALCHEMY_CONN}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "72s%load_examples\s=\s.*%load_examples = ${AIRFLOW__CORE__LOAD_EXAMPLES}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "78s%fernet_key\s=\s.*%fernet_key = ${AIRFLOW__CORE__FERNET_KEY}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "161s%secret_key\s=\s.*%secret_key = ${AIRFLOW__WEBSERVER__SECRET_KEY}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "253s%broker_url\s=\s.*%broker_url = ${AIRFLOW__CELERY__BROKER_URL}%" ${AIRFLOW_HOME}/airflow.cfg
-# sed -i "256s%celery_result_backend\s=\s.*%celery_result_backend = ${AIRFLOW__CELERY__CELERY_RESULT_BACKEND}%" ${AIRFLOW_HOME}/airflow.cfg
-
 wait_for_port() {
   local name="$1" host="$2" port="$3"
   local j=0
