@@ -10,7 +10,6 @@ from sqlalchemy.exc import ProgrammingError
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.bash_operator import BashOperator
 
 from auxiliary.outils import get_secret
 
@@ -19,14 +18,8 @@ def attempt_connection(db_engine):
     while True:
         try:
             db_engine.connect()
-            now = datetime.now()
-            with open('/usr/local/airflow/dags/daemon.txt', 'a') as f:
-                f.write(f'{now} Connected successfully. Exiting loop.')
             break
         except ProgrammingError as e:
-            now = datetime.now()
-            with open('/usr/local/airflow/dags/daemon.txt', 'a') as f:
-                f.write(f'{now} Connection refused:\n{e}\nTrying again in 5m . . . \n')
             sleep(300)
 
 
@@ -53,15 +46,9 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5)}
 
-dag = DAG('db_access_daemon', default_args=default_args, schedule_interval='@daily')
+dag = DAG('db_access_daemon', default_args=default_args, schedule_interval='@daily', catchup=False)
 
 t1 = PythonOperator(task_id='attempt_to_connect',
                     python_callable=attempt_connection,
                     op_kwargs={'db_engine': engine},
                     dag=dag)
-
-t2 = BashOperator(task_id='echo_final_datetime',
-                  bash_command='echo Dag finished at $(date) >> /usr/local/airflow/dags/daemon.txt',
-                  dag=dag)
-
-t1 >> t2
