@@ -110,8 +110,6 @@ services:
             replicas: 2
             restart_policy:
                 condition: on-failure
-            placement:
-                constraints: [node.labels.type == worker]
         secrets:
             - ebi_db_conn
             - fernet_key
@@ -133,8 +131,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            placement:
-                constraints: [node.role == manager]
 
 networks:
     skynet:
