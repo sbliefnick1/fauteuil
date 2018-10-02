@@ -5,7 +5,7 @@
 # SOURCE https://github.com/sbliefnick/fauteuil
 # Based on puckel/docker-airflow https://github.com/puckel/docker-airflow
 
-FROM python:3.6-slim
+FROM python:3.5-slim
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -62,12 +62,14 @@ RUN set -ex \
     && pip install pyOpenSSL==18.0.0 \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.4 \
+    && pip install click==6.7 \
     && pip install apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
-    && pip install celery[redis]==4.2.1 \
-	&& pip install pandas==0.22.0 \
+    && pip install celery[redis]==4.1.1 \
+    && pip install gevent==1.3.6 \
+	&& pip install pandas==0.23.4 \
 	&& pip install psycopg2==2.7.5 \
-	&& pip install pyodbc==4.0.16 \
-	&& pip install SQLAlchemy==1.2.5 \
+	&& pip install pyodbc==4.0.24 \
+	&& pip install SQLAlchemy==1.1.18 \
 	&& pip install tableauserverclient==0.7 \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get clean \
