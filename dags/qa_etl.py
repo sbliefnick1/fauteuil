@@ -62,6 +62,7 @@ elif os.sys.platform == 'linux':
     ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
 
 conn_id = 'qa_ebi_datamart'
+pool_id = 'qa_ebi_etl_pool'
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
                     'DATABASE={}'.format(ebi["database"]) + ';'
@@ -100,6 +101,7 @@ for p in unique_procs:
             sql='exec {};'.format(p),
             task_id='exec_{}'.format(p),
             mssql_conn_id=conn_id,
+            pool=pool_id,
             dag=dag
             )
     sql_operators[p] = o
