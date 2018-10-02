@@ -56,23 +56,23 @@ order by p.name, o.name;
 '''
 
 if os.sys.platform == 'darwin':
-    with open(f'./secrets/ebi_db_conn.json', 'r') as secret_file:
+    with open('./secrets/ebi_db_conn.json', 'r') as secret_file:
         ebi = json.load(secret_file)['db_connections']['fi_dm_ebi']
 elif os.sys.platform == 'linux':
     ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
 
 conn_id = 'ebi_datamart'
-params = quote_plus(f'DRIVER={ebi["driver"]};'
-                    f'SERVER={ebi["server"]};'
-                    f'DATABASE={ebi["db"]};'
-                    f'UID={ebi["user"]};'
-                    f'PWD={ebi["password"]};'
-                    f'PORT={ebi["port"]};'
-                    f'TDS_Version={ebi["tds_version"]};'
+params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
+                    'SERVER={}'.format(ebi["server"]) + ';'
+                    'DATABASE={}'.format(ebi["database"]) + ';'
+                    'UID={}'.format(ebi["user"]) + ';'
+                    'PWD={}'.format(ebi["password"]) + ';'
+                    'PORT={}'.format(ebi["port"]) + ';'
+                    'TDS_Version={}'.format(ebi["tds_version"]) + ';'
                     )
 
 # connect to fi_dm_ebi
-engine = sa.create_engine(f'mssql+pyodbc:///?odbc_connect={params}')
+engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
 conn = engine.connect()
 
 # get procedure-view relationship
@@ -97,8 +97,8 @@ unique_dep_procs = dep_procs.proc_name.unique()
 sql_operators = {}
 for p in unique_procs:
     o = MsSqlOperator(
-            sql=f'exec {p};',
-            task_id=f'exec_{p}',
+            sql='exec {};'.format(p),
+            task_id='exec_{}'.format(p),
             mssql_conn_id=conn_id,
             dag=dag
             )

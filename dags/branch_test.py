@@ -44,7 +44,7 @@ join = DummyOperator(
 for option in options:
     t = BashOperator(
             task_id=option,
-            bash_command=f'echo {option} executed at $(date) >> {option}.txt',
+            bash_command='echo {} executed at $(date) >> {}.txt'.format(option, option),
             dag=dag)
     branching >> t
     dummy_follow = DummyOperator(task_id='follow_' + option, dag=dag)

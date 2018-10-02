@@ -25,16 +25,16 @@ def attempt_connection(db_engine):
 
 ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
 
-params = quote_plus(f'DRIVER={ebi["driver"]};'
-                    f'SERVER={ebi["server"]};'
-                    f'DATABASE={ebi["db"]};'
-                    f'UID={ebi["user"]};'
-                    f'PWD={ebi["password"]};'
-                    f'PORT={ebi["port"]};'
-                    f'TDS_Version={ebi["tds_version"]};'
+params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
+                    'SERVER={}'.format(ebi["server"]) + ';'
+                    'DATABASE={}'.format(ebi["database"]) + ';'
+                    'UID={}'.format(ebi["user"]) + ';'
+                    'PWD={}'.format(ebi["password"]) + ';'
+                    'PORT={}'.format(ebi["port"]) + ';'
+                    'TDS_Version={}'.format(ebi["tds_version"]) + ';'
                     )
 
-engine = sa.create_engine(f'mssql+pyodbc:///?odbc_connect={params}')
+engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
 
 default_args = {
     'owner': 'airflow',

@@ -26,7 +26,7 @@ default_args = {
     'retry_delay': timedelta(minutes=2)
     }
 
-dag = DAG('etl_master_rework', default_args=default_args, catchup=False, schedule_interval='@daily')
+dag = DAG('qa_etl', default_args=default_args, catchup=False, schedule_interval='@daily')
 
 initial_sql = '''
 select p.name as proc_name
@@ -57,14 +57,14 @@ order by p.name, o.name;
 
 if os.sys.platform == 'darwin':
     with open('./secrets/ebi_db_conn.json', 'r') as secret_file:
-        ebi = json.load(secret_file)['db_connections']['fi_dm_ebi']
+        ebi = json.load(secret_file)['db_connections']['qa_db']
 elif os.sys.platform == 'linux':
-    ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
+    ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
 
-conn_id = 'ebi_datamart'
+conn_id = 'qa_ebi_datamart'
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
-                    'DATABASE={}'.format(ebi["db"]) + ';'
+                    'DATABASE={}'.format(ebi["database"]) + ';'
                     'UID={}'.format(ebi["user"]) + ';'
                     'PWD={}'.format(ebi["password"]) + ';'
                     'PORT={}'.format(ebi["port"]) + ';'
@@ -112,7 +112,7 @@ for p in unique_dep_procs:
 
 # create sensor to wait for db_access_daemon so we know we can log in to db
 access = ExternalTaskSensor(
-        external_dag_id='db_access_daemon',
+        external_dag_id='qa_db_access_daemon',
         external_task_id='attempt_to_connect',
         task_id='wait_for_access',
         dag=dag

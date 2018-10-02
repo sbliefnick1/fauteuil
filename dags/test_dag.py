@@ -24,5 +24,3 @@ run_first = BashOperator(
     bash_command='sleep 5',
     retries=3,
     dag=dag)
-
-run_first

@@ -23,11 +23,11 @@ def attempt_connection(db_engine):
             sleep(300)
 
 
-ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
+ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
 
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
-                    'DATABASE={}'.format(ebi["db"]) + ';'
+                    'DATABASE={}'.format(ebi["database"]) + ';'
                     'UID={}'.format(ebi["user"]) + ';'
                     'PWD={}'.format(ebi["password"]) + ';'
                     'PORT={}'.format(ebi["port"]) + ';'
@@ -46,7 +46,8 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5)}
 
-dag = DAG('db_access_daemon', default_args=default_args, schedule_interval='@daily', catchup=False)
+dag = DAG('qa_db_access_daemon', default_args=default_args, schedule_interval='@daily', catchup=False)
+
 
 t1 = PythonOperator(task_id='attempt_to_connect',
                     python_callable=attempt_connection,
