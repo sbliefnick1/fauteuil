@@ -3,7 +3,7 @@ services:
     redis:
         deploy:
             placement:
-                constraints: [node.labels.type == celred]
+                constraints: [node.labels.type == postgres]
 
     postgres:
         deploy:
@@ -14,7 +14,7 @@ services:
         image: sbliefnick/fauteuil:v1-2
         deploy:
             placement:
-                constraints: [node.labels.type == celred]
+                constraints: [node.labels.type == postgres]
 
     webserver:
         image: sbliefnick/fauteuil:v1-2
@@ -33,7 +33,7 @@ services:
         deploy:
             replicas: 1
             placement:
-                constraints: [node.labels.type == postgres]
+                constraints: [node.labels.type == worker]
 
     worker2:
         image: sbliefnick/fauteuil:v1-2
@@ -41,6 +41,8 @@ services:
             - scheduler
         networks:
             - skynet
+        volumes:
+            - etl_deps:/var/lib/etl_deps/
         deploy:
             replicas: 1
             placement:

@@ -3,7 +3,7 @@ services:
     redis:
         deploy:
             placement:
-                constraints: [node.labels.type == celred]
+                constraints: [node.role == manager]
 
     postgres:
         deploy:
@@ -14,25 +14,25 @@ services:
         image: sbliefnick/fauteuil:latest
         deploy:
             placement:
-                constraints: [node.labels.type == celred]
+                constraints: [node.role == manager]
 
     webserver:
         image: sbliefnick/fauteuil:latest
         deploy:
             placement:
-                constraints: [node.role == manager]
+                constraints: [node.role == worker]
 
     scheduler:
         image: sbliefnick/fauteuil:latest
         deploy:
             placement:
-                constraints: [node.role == manager]
+                constraints: [node.role == worker]
 
     worker:
         image: sbliefnick/fauteuil:latest
         deploy:
             placement:
-                constraints: [node.labels.type == worker]
+                constraints: [node.role == worker]
 
     visualizer:
         deploy:
