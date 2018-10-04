@@ -67,7 +67,7 @@ RUN set -ex \
     && pip install celery[redis]==4.1.1 \
     && pip install gevent==1.3.6 \
 	&& pip install pandas==0.23.4 \
-	&& pip install psycopg2==2.7.5 \
+	&& pip install psycopg2-binary==2.7.5 \
 	&& pip install pyodbc==4.0.24 \
 	&& pip install SQLAlchemy==1.1.18 \
 	&& pip install tableauserverclient==0.7 \

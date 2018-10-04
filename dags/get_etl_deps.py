@@ -11,22 +11,22 @@ import sqlalchemy as sa
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.postgres_operator import PostgresOperator
+from airflow.operators.sensors import ExternalTaskSensor
 
 from auxiliary.outils import get_secret
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2018, 10, 2, tzinfo=pendulum.timezone('America/Los_Angeles')),
-    'email': ['sbliefnick@coh.org'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=2)
-    }
 
-dag = DAG('qa_get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
+def query_and_save(db_engine, sql):
+    # connect to fi_dm_ebi
+    conn = db_engine.connect()
+
+    # get procedure-view relationship
+    df = pd.read_sql(sql, conn)
+    df.proc_name = df.proc_name.str.lower()
+    df.dependency_name = df.dependency_name.str.lower()
+
+    df.to_csv('/var/lib/etl_deps/ebi_etl_diagram.csv', index=False)
+
 
 initial_sql = '''
 select p.name as proc_name
@@ -61,7 +61,6 @@ if os.sys.platform == 'darwin':
 elif os.sys.platform == 'linux':
     ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
 
-conn_id = 'qa_ebi_datamart'
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
                     'DATABASE={}'.format(ebi["database"]) + ';'
@@ -71,15 +70,32 @@ params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'TDS_Version={}'.format(ebi["tds_version"]) + ';'
                     )
 
+engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
 
-def query_and_save():
-    # connect to fi_dm_ebi
-    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
-    conn = engine.connect()
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2018, 10, 2, tzinfo=pendulum.timezone('America/Los_Angeles')),
+    'email': ['sbliefnick@coh.org'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2)
+    }
 
-    # get procedure-view relationship
-    df = pd.read_sql(initial_sql, conn)
-    df.proc_name = df.proc_name.str.lower()
-    df.dependency_name = df.dependency_name.str.lower()
+dag = DAG('qa_get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
 
-    df.to_csv('/usr/local/airflow/ebi_etl_diagram.csv', index=False)
+t1 = ExternalTaskSensor(
+        external_dag_id='qa_db_access_daemon',
+        external_task_id='attempt_to_connect',
+        task_id='wait_for_access',
+        dag=dag
+        )
+
+t2 = PythonOperator(task_id='query_and_save_deps',
+                    python_callable=query_and_save,
+                    op_kwargs={'db_engine': engine,
+                               'sql': initial_sql},
+                    dag=dag)
+
+t1 >> t2

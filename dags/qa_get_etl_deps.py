@@ -10,23 +10,23 @@ import pendulum
 import sqlalchemy as sa
 
 from airflow import DAG
-from airflow.operators.mssql_operator import MsSqlOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.sensors import ExternalTaskSensor
 
 from auxiliary.outils import get_secret
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2018, 9, 12, tzinfo=pendulum.timezone('America/Los_Angeles')),
-    'email': ['sbliefnick@coh.org'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=2)
-    }
 
-dag = DAG('qa_etl', default_args=default_args, catchup=False, schedule_interval='@daily')
+def query_and_save(db_engine, sql):
+    # connect to fi_dm_ebi
+    conn = db_engine.connect()
+
+    # get procedure-view relationship
+    df = pd.read_sql(sql, conn)
+    df.proc_name = df.proc_name.str.lower()
+    df.dependency_name = df.dependency_name.str.lower()
+
+    df.to_csv('/var/lib/etl_deps/ebi_etl_diagram.csv', index=False)
+
 
 initial_sql = '''
 select p.name as proc_name
@@ -61,8 +61,6 @@ if os.sys.platform == 'darwin':
 elif os.sys.platform == 'linux':
     ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
 
-conn_id = 'qa_ebi_datamart'
-pool_id = 'qa_ebi_etl_pool'
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
                     'DATABASE={}'.format(ebi["database"]) + ';'
@@ -72,53 +70,32 @@ params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'TDS_Version={}'.format(ebi["tds_version"]) + ';'
                     )
 
-# connect to fi_dm_ebi
 engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
-conn = engine.connect()
 
-# get procedure-view relationship
-df = pd.read_sql(initial_sql, conn)
-df.proc_name = df.proc_name.str.lower()
-df.dependency_name = df.dependency_name.str.lower()
-unique_procs = df.proc_name.unique()
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2018, 10, 2, tzinfo=pendulum.timezone('America/Los_Angeles')),
+    'email': ['sbliefnick@coh.org'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2)
+    }
 
-# get tables that have no dependency
-no_dep_procs = df[(df.dependency_name == '') & (df.num_dependencies == 0)][['proc_name']]
+dag = DAG('qa_get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
 
-# get tables that have at least one dependency
-dep_procs = df[(df.dependency_name != '') & (df.num_dependencies != 0)][['proc_name', 'dependency_name']]
-
-# create grouping of procs with tables they rely on
-proc_map = dep_procs.groupby('proc_name')['dependency_name'].apply(list)
-
-# create series of procs that have dependencies to loop over and set downstream
-unique_dep_procs = dep_procs.proc_name.unique()
-
-# create a sqloperator for each procedure
-sql_operators = {}
-for p in unique_procs:
-    o = MsSqlOperator(
-            sql='exec {};'.format(p),
-            task_id='exec_{}'.format(p),
-            mssql_conn_id=conn_id,
-            pool=pool_id,
-            dag=dag
-            )
-    sql_operators[p] = o
-
-# set procedures downstream from all their dependencies
-for p in unique_dep_procs:
-    tables = proc_map[p]
-    for t in tables:
-        sql_operators[t + '_logic'] >> sql_operators[p]
-
-# create sensor to wait for db_access_daemon so we know we can log in to db
-access = ExternalTaskSensor(
+t1 = ExternalTaskSensor(
         external_dag_id='qa_db_access_daemon',
         external_task_id='attempt_to_connect',
         task_id='wait_for_access',
         dag=dag
         )
 
-for p in no_dep_procs.proc_name:
-    access >> sql_operators[p]
+t2 = PythonOperator(task_id='query_and_save_deps',
+                    python_callable=query_and_save,
+                    op_kwargs={'db_engine': engine,
+                               'sql': initial_sql},
+                    dag=dag)
+
+t1 >> t2
