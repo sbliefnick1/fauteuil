@@ -25,7 +25,7 @@ def query_and_save(db_engine, sql):
     df.proc_name = df.proc_name.str.lower()
     df.dependency_name = df.dependency_name.str.lower()
 
-    df.to_csv('/var/lib/etl_deps/ebi_etl_diagram.csv', index=False)
+    df.to_csv('/var/lib/etl_deps/qa_ebi_etl_diagram.csv', index=False)
 
 
 initial_sql = '''
@@ -86,7 +86,7 @@ default_args = {
 dag = DAG('qa_get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
 
 t1 = ExternalTaskSensor(
-        external_dag_id='qa_db_access_daemon',
+        external_dag_id='qa_probe_db_access',
         external_task_id='attempt_to_connect',
         task_id='wait_for_access',
         dag=dag

@@ -57,9 +57,9 @@ order by p.name, o.name;
 
 if os.sys.platform == 'darwin':
     with open('./secrets/ebi_db_conn.json', 'r') as secret_file:
-        ebi = json.load(secret_file)['db_connections']['qa_db']
+        ebi = json.load(secret_file)['db_connections']['fi_dm_ebi']
 elif os.sys.platform == 'linux':
-    ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
+    ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
 
 params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
                     'SERVER={}'.format(ebi["server"]) + ';'
@@ -83,10 +83,10 @@ default_args = {
     'retry_delay': timedelta(minutes=2)
     }
 
-dag = DAG('qa_get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
+dag = DAG('get_etl_deps', default_args=default_args, catchup=False, schedule_interval='@daily')
 
 t1 = ExternalTaskSensor(
-        external_dag_id='qa_db_access_daemon',
+        external_dag_id='probe_db_access',
         external_task_id='attempt_to_connect',
         task_id='wait_for_access',
         dag=dag

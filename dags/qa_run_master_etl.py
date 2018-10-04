@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 
 from datetime import datetime, timedelta
-import json
-import os
-from urllib.parse import quote_plus
 
 import pandas as pd
 import pendulum
-import sqlalchemy as sa
 
 from airflow import DAG
 from airflow.operators.mssql_operator import MsSqlOperator
 from airflow.operators.sensors import ExternalTaskSensor
-
-from auxiliary.outils import get_secret
 
 default_args = {
     'owner': 'airflow',
@@ -26,61 +20,12 @@ default_args = {
     'retry_delay': timedelta(minutes=2)
     }
 
-dag = DAG('qa_etl', default_args=default_args, catchup=False, schedule_interval='@daily')
+dag = DAG('qa_run_master_etl', default_args=default_args, catchup=False, schedule_interval='@daily')
 
-# initial_sql = '''
-# select p.name as proc_name
-#      , case
-#           when replace(p.name, '_Logic', '') = o.name
-#               then ''
-#           else o.name
-#       end as dependency_name
-#      , c.num_dependencies
-# from sys.procedures p
-#        left join sys.sql_expression_dependencies d on p.object_id = d.referencing_id
-#        left join sys.objects o on o.object_id = d.referenced_id
-#        left join (select p2.object_id as proc_id
-#                        , count(case when o2.name + '_Logic' <> p2.name then 1 end) as num_dependencies
-#                   from sys.procedures p2
-#                          left join sys.sql_expression_dependencies d2 on p2.object_id = d2.referencing_id
-#                          left join sys.objects o2 on o2.object_id = d2.referenced_id
-#                   where (p2.name like 'EBI[_]Dim[_]%[_]Logic' or p2.name like 'EBI[_]Fact[_]%[_]Logic' or p2.name like 'EBI[_]Bridge[_]%[_]Logic')
-#                     and p2.name not like '%[_]dev'
-#                     and (o2.name like 'ebi[_]dim[_]%' or o2.name like 'ebi[_]fact[_]%' or o2.name like 'ebi[_]bridge[_]%')
-#                   group by p2.object_id) c on c.proc_id = p.object_id
-# where (p.name like 'EBI[_]Dim[_]%[_]Logic' or p.name like 'EBI[_]Fact[_]%[_]Logic' or p.name like 'EBI[_]Bridge[_]%[_]Logic')
-#   and p.name not like '%[_]dev'
-#   and (o.name like 'ebi[_]dim[_]%' or o.name like 'ebi[_]fact[_]%' or o.name like 'ebi[_]bridge[_]%')
-#   and exists (select 1 from sys.procedures p3 where p3.name = o.name + '_Logic')
-# order by p.name, o.name;
-# '''
-#
-# if os.sys.platform == 'darwin':
-#     with open('./secrets/ebi_db_conn.json', 'r') as secret_file:
-#         ebi = json.load(secret_file)['db_connections']['qa_db']
-# elif os.sys.platform == 'linux':
-#     ebi = get_secret('ebi_db_conn')['db_connections']['qa_db']
-#
 conn_id = 'qa_ebi_datamart'
 pool_id = 'qa_ebi_etl_pool'
-# params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
-#                     'SERVER={}'.format(ebi["server"]) + ';'
-#                     'DATABASE={}'.format(ebi["database"]) + ';'
-#                     'UID={}'.format(ebi["user"]) + ';'
-#                     'PWD={}'.format(ebi["password"]) + ';'
-#                     'PORT={}'.format(ebi["port"]) + ';'
-#                     'TDS_Version={}'.format(ebi["tds_version"]) + ';'
-#                     )
-#
-# # connect to fi_dm_ebi
-# engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
-# conn = engine.connect()
-#
-# # get procedure-view relationship
-# df = pd.read_sql(initial_sql, conn)
-# df.proc_name = df.proc_name.str.lower()
-# df.dependency_name = df.dependency_name.str.lower()
-df = pd.read_csv('/var/lib/etl_deps/ebi_etl_diagram.csv', na_filter=False)
+
+df = pd.read_csv('/var/lib/etl_deps/qa_ebi_etl_diagram.csv', na_filter=False)
 unique_procs = df.proc_name.unique()
 
 # get tables that have no dependency
@@ -115,7 +60,7 @@ for p in unique_dep_procs:
 
 # create sensor to wait for db_access_daemon so we know we can log in to db
 access = ExternalTaskSensor(
-        external_dag_id='qa_db_access_daemon',
+        external_dag_id='qa_probe_db_access',
         external_task_id='attempt_to_connect',
         task_id='wait_for_access',
         dag=dag

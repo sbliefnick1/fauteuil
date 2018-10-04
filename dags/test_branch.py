@@ -21,7 +21,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=2)}
 
-dag = DAG('branch_test', default_args=default_args, schedule_interval='@daily')
+dag = DAG('test_branch', default_args=default_args, schedule_interval='@daily')
 
 options = ['branch_a', 'branch_b', 'branch_c', 'branch_d']
 
