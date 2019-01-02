@@ -7,7 +7,10 @@ import pendulum
 
 from airflow import DAG
 from airflow.operators.mssql_operator import MsSqlOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.sensors import ExternalTaskSensor
+
+from auxiliary.outils import refresh_tableau_extract
 
 default_args = {
     'owner': 'airflow',
@@ -22,27 +25,20 @@ default_args = {
 
 dag = DAG('run_master_etl', default_args=default_args, catchup=False, schedule_interval='@daily')
 
+
+def read_json_files(names):
+    return [pd.read_json('/var/nfsshare/etl_deps/dev_{}.json'.format(name)) for name in names]
+
+
 conn_id = 'ebi_datamart'
 pool_id = 'ebi_etl_pool'
 
-df = pd.read_csv('/var/lib/etl_deps/ebi_etl_diagram.csv', na_filter=False)
-unique_procs = df.proc_name.unique()
+to_read = ['unique_procs', 'no_dep_procs', 'proc_map', 'unique_dep_procs', 'unique_ds', 'ds_map', 'unique_ds_procs']
+unique_procs, no_dep_procs, proc_map, unique_dep_procs, unique_ds, ds_map, unique_ds_procs = read_json_files(to_read)
 
-# get tables that have no dependency
-no_dep_procs = df[(df.dependency_name == '') & (df.num_dependencies == 0)][['proc_name']]
-
-# get tables that have at least one dependency
-dep_procs = df[(df.dependency_name != '') & (df.num_dependencies != 0)][['proc_name', 'dependency_name']]
-
-# create grouping of procs with tables they rely on
-proc_map = dep_procs.groupby('proc_name')['dependency_name'].apply(list)
-
-# create series of procs that have dependencies to loop over and set downstream
-unique_dep_procs = dep_procs.proc_name.unique()
-
-# create a sqloperator for each procedure
-sql_operators = {}
-for p in unique_procs:
+# create a sql operator for each procedure
+sql_ops = {}
+for p in unique_procs.procs:
     o = MsSqlOperator(
             sql='exec {};'.format(p),
             task_id='exec_{}'.format(p),
@@ -50,23 +46,34 @@ for p in unique_procs:
             pool=pool_id,
             dag=dag
             )
-    sql_operators[p] = o
+    sql_ops[p] = o
+
+# create a python operator for each tableau datasource
+python_ops = {}
+for ds in unique_ds.ds_name:
+    ds_id = unique_ds.loc[unique_ds.ds_name == ds, 'id'].values[0]
+    o = PythonOperator(
+            task_id='refresh_{}'.format(ds),
+            python_callable=refresh_tableau_extract,
+            op_kwargs={'datasource_id': ds_id},
+            dag=dag
+            )
+    python_ops[ds] = o
 
 # set procedures downstream from all their dependencies
-for p in unique_dep_procs:
-    for t in proc_map[p]:
-        sql_operators[t + '_logic'] >> sql_operators[p]
-# [sql_operators[t + '_logic'] >> sql_operators[p] for p in unique_dep_procs for t in proc_map[p]]
+for p in unique_dep_procs.procs:
+    for t in proc_map.loc[proc_map.proc_name == p].dependency_name.values[0]:
+        sql_ops[t + '_logic'] >> sql_ops[p]
+# [sql_ops[t + '_logic'] >> sql_ops[p] for p in unique_dep_procs.procs for t in proc_map.loc[proc_map.proc_name ==
+# p].dependency_name.values[0]]
 
-# create sensor to wait for db_access_daemon so we know we can log in to db
-access = ExternalTaskSensor(
-        external_dag_id='probe_db_access',
-        external_task_id='attempt_to_connect',
-        task_id='wait_for_access',
-        dag=dag
-        )
+# set ds refreshes downstream from all their procedure dependencies
+for ds in unique_ds.ds_name:
+    for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]:
+        sql_ops[p] >> python_ops[ds]
+# [sql_ops[p] >> python_ops[ds] for ds in unique_ds.ds_name for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]]
 
-# create sensor to wait for etl dependencies to be in csv
+# create sensor to wait for etl dependencies to be in json
 deps = ExternalTaskSensor(
         external_dag_id='get_etl_deps',
         external_task_id='query_and_save_deps',
@@ -74,7 +81,5 @@ deps = ExternalTaskSensor(
         dag=dag
         )
 
-access >> deps
-
 for p in no_dep_procs.proc_name:
-    deps >> sql_operators[p]
+    deps >> sql_ops[p]
