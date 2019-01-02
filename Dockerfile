@@ -87,7 +87,7 @@ COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 # COPY misc/webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 COPY config/odbcinst.ini /etc/odbcinst.ini
-COPY dags ${AIRFLOW_HOME}/dags/ 
+# COPY dags ${AIRFLOW_HOME}/dags/
 COPY auxiliary ${AIRFLOW_HOME}/auxiliary/
 
 ENV PYTHONPATH ${AIRFLOW_HOME} 
