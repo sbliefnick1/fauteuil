@@ -11,7 +11,7 @@ from sqlalchemy.exc import ProgrammingError
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from auxiliary.outils import get_secret
+from auxiliary.outils import get_json_secret
 
 
 def attempt_connection(db_engine):
@@ -23,16 +23,16 @@ def attempt_connection(db_engine):
             sleep(300)
 
 
-ebi = get_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
+ebi = get_json_secret('ebi_db_conn')['db_connections']['fi_dm_ebi']
 
-params = quote_plus('DRIVER={}'.format(ebi["driver"]) + ';'
-                    'SERVER={}'.format(ebi["server"]) + ';'
-                    'DATABASE={}'.format(ebi["database"]) + ';'
-                    'UID={}'.format(ebi["user"]) + ';'
-                    'PWD={}'.format(ebi["password"]) + ';'
-                    'PORT={}'.format(ebi["port"]) + ';'
-                    'TDS_Version={}'.format(ebi["tds_version"]) + ';'
-                    )
+params = quote_plus('DRIVER={driver};'
+                    'SERVER={server};'
+                    'DATABASE={database};'
+                    'UID={user};'
+                    'PWD={password};'
+                    'PORT={port};'
+                    'TDS_Version={tds_version};'
+                    .format(**ebi))
 
 engine = sa.create_engine('mssql+pyodbc:///?odbc_connect={}'.format(params))
 
