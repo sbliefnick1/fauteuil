@@ -52,6 +52,7 @@ RUN set -ex \
         rsync \
         netcat \
         locales \
+        jq \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
@@ -71,6 +72,7 @@ RUN set -ex \
 	&& pip install pyodbc==4.0.24 \
 	&& pip install SQLAlchemy==1.1.18 \
 	&& pip install tableauserverclient==0.7 \
+	&& pip install tableaudocumentapi==0.6 \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
@@ -83,13 +85,17 @@ RUN set -ex \
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+# COPY misc/webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 COPY config/odbcinst.ini /etc/odbcinst.ini
 COPY dags ${AIRFLOW_HOME}/dags/ 
 COPY auxiliary ${AIRFLOW_HOME}/auxiliary/
 
 ENV PYTHONPATH ${AIRFLOW_HOME} 
 
-RUN chown -R airflow: ${AIRFLOW_HOME}
+RUN mkdir -p /var/nfsshare
+# RUN mkdir -p ${AIRFLOW_HOME}/intermediate/certs
+# RUN mkdir -p ${AIRFLOW_HOME}/intermediate/private
+RUN chown -R airflow: ${AIRFLOW_HOME} && chown airflow:airflow /var/nfsshare
 RUN chmod +x /entrypoint.sh
 RUN chmod 776 /etc/freetds/freetds.conf
 RUN chmod 776 /etc/odbc.ini
