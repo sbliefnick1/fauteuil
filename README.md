@@ -10,50 +10,85 @@ Fauteuil means *armchair* in
 French, and I wanted a completely distinct word to refer to the project while
 'getting comfortable' with Docker and Airflow.
 
-## Getting Started with a Local (Test) Deployment
+## Getting Started with a Multi-Node Development Deployment
 
-These instructions will get you a copy of the project up and running on your 
-local machine for development and testing purposes. See deployment for notes on 
-how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on a 
+multi-node cluster for development purposes. A production setup would be similar,
+although likely with more nodes and different passwords.
 
 ### Prerequisites
 - Git
 - Docker
 - Python >= 3.5 
 
-### Deployment-Specific Configurations 
+### Deployment-Specific Configurations Within Fauteuil
 - `config/airflow.cfg`
 - `config/odbcinst.ini`
-- `secrets/{dev,prod,test}/fernet_key`
-- `secrets/{dev,prod,test}/flask_secret_key`
-- `secrets/{dev,prod,test}/pg_password`
+- `secrets/{dev,prod}/fernet_key`
+- `secrets/{dev,prod}/flask_secret_key`
+- `secrets/{dev,prod}/pg_password`
 - `secrets/freetds.conf`
 - `secrets/odbc.ini`
 - `docker-compose.yml`
 
-### Installation and Setup
+## Installation and Setup
 - Clone the repo
-  - `$ git clone https://github.com/sbliefnick1/fauteuil.git`
-- Create a 4MB RAM VM for your test environment using the virtualbox driver
-  - `$ docker-machine create -d virtualbox --virtualbox-memory 4096 testbox1`
-- Initialize the machine as a Swarm manager
-  - `$ docker-machine ssh testbox1 "docker swarm init"`
-- Set your environment to execute directly on the machine
-  - `$ eval $(docker-machine env testbox1)`
-- Verify your environment is set correctly
-  - `$ docker-machine ls` should show an asterisk next to the machine name
-  - `$ docker node ls` should not return an error
+```bash
+  git clone https://github.com/sbliefnick1/fauteuil.git
+```
+
+### Node configuration
+- Configure ssh access to the nodes which will be part of the Swarm
+  - `$ ssh-keygen -t ecdsa -b 521`
+  - Return twice (no password)
+  - `$ ssh-copy-id -i ~/.ssh/id_ecdsa.pub youruser@yourmachine`
+  - Repeat for each additional node
+- Open ports on the nodes
+  - `$ sudo firewall-cmd --zone=public --add-port=2377/tcp --permanent` 
+  - Repeat for `2376/tcp`, `7946/tcp`, `7946/udp`, `4789/udp`
+  - `$ sudo firewall-cmd --reload`
+- Install Docker on all the nodes
+```bash
+  sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+  sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  sudo yum install docker-ce
+  sudo systemctl start docker
+  sudo systemctl enable docker  # to maker Docker start on boot
+```
+- Configure the user you want to run Docker to have no-password sudo access
+  - `$ sudo visudo`
+  - `youruser   ALL=(ALL)   NOPASSWD: ALL`
+  
+### Docker configuration
+- Configure your local Docker daemon to control the ones on the nodes
+  - `$ docker-machine create --driver generic --generic-ip-address=XXX.XXX.XXX.XXX
+  --generic-ssh-key .ssh/id_ecdsa --generic-ssh-user youruser yourmachine`
+- Add any relevant users to Docker group 
+  - `$ sudo usermod -aG docker youruser`
+  - Log out and back in to take effect
+  - Verify membership with `$ grep docker /etc/group`
+- Initialize the Swarm manager
+  - `$ eval $(docker-machine env yourmanager)`
+  - `$ docker swarm init`
+- Join workers to manager
+  - `$ token=$(docker swarm join-token -q worker)`
+  - `$ managerip=$(docker-machine ip yourmanager):2377`
+  - `$ docker-machine ssh yourworker1 "docker swarm join --token $token 
+  $managerip`
+  - Repeat last command for all worker nodes
+  - Verify status with `$ docker node ls`
 - Add labels to the machine
-  - `$ docker node update --label-add class=celred testbox1`
-  - `$ docker node update --label-add type=postgres testbox1`
-  - `$ docker node update --label-add role=worker testbox1`
+  - `$ docker node update --label-add type=postgres yourmachine2`
+  
+### Deployment-Specific Configuration
 - Prepare secrets files
-  - `python -c "from cryptography.fernet import Fernet; 
-  print(Fernet.generate_key().decode())" > secrets/test/fernet_key`
-  - `$ openssl rand -base64 24 | tr -d "+=/" > secrets/test/flask_secret_key`
-  - `$ openssl rand -base64 24 | tr -d "+=/" > secrets/test/pg_password`
-  - `$ echo airflow > secrets/pg_db`
-  - `$ echo airflow > secrets/pg_user`
+```bash
+  python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > secrets/test/fernet_key
+  openssl rand -base64 24 | tr -d "+=/" > secrets/test/flask_secret_key
+  openssl rand -base64 24 | tr -d "+=/" > secrets/test/pg_password
+  echo airflow > secrets/pg_db
+  echo airflow > secrets/pg_user
+```
   - Optional if you want to use ODBC/DSN connections:
 ```bash
 $ cat > secrets/freetds.conf << EOF
@@ -74,68 +109,84 @@ TDS version=7.0
 Trace=No
 EOF
 ```
-- Create secrets
-  - `$ docker secret create fernet_key secrets/test/fernet_key`
-  - `$ docker secret create flask_secret_key secrets/test/flask_secret_key`
-  - `$ docker secret create pg_password secrets/test/pg_password`
-  - `$ docker secret create pg_db secrets/pg_db`  
-  - `$ docker secret create pg_user secrets/pg_user`
-  - `$ docker secret create freetds.conf secrets/freetds.conf`
-  - `$ docker secret create odbc.ini secrets/odbc.ini`
+- Create secrets (run this on a manager node)
+```bash
+  eval $(docker-machine env yourmanager1)
+  docker secret create fernet_key secrets/test/fernet_key
+  docker secret create flask_secret_key secrets/test/flask_secret_key
+  docker secret create pg_password secrets/test/pg_password
+  docker secret create pg_db secrets/pg_db
+  docker secret create pg_user secrets/pg_user
+  docker secret create freetds.conf secrets/freetds.conf
+  docker secret create odbc.ini secrets/odbc.ini
+```
+  
+### NFS Configuration
+We use an NFS shared directory to sync the DagBag across nodes easily, and
+without having to rebuild the Docker image every time.
+
+- On the server machine (manager or other designated DAG repo node)
+```bash
+yum install nfs-utils
+mkdir /var/nfsshare
+chmod -R 777 /var/nfsshare
+chown nfsnobody:nfsnobody /var/nfsshare
+systemctl enable rpcbind
+systemctl enable nfs-server
+systemctl enable nfs-lock
+systemctl enable nfs-idmap
+systemctl start rpcbind
+systemctl start nfs-server
+systemctl start nfs-lock
+systemctl start nfs-idmap
+```
+
+  - Edit the exports file with `$ vim /etc/exports` and add an entry as follows
+for each client machine you wish to be able to access the shared directory 
+(change for your relevant IPs):
+```bash
+/var/nfsshare   192.168.0.101(rw,sync,no_root_squash,no_all_squash)
+```
+
+  - Start the NFS service
+    - `$ systemctl restart nfs-server`
+
+  - Allow firewall settings
+```bash
+firewall-cmd --permanent --zone=public --add-service=nfs
+firewall-cmd --permanent --zone=public --add-service=mountd
+firewall-cmd --permanent --zone=public --add-service=rpc-bind
+firewall-cmd --reload
+```
+
+- On the client machines (worker nodes)
+```bash
+yum install nfs-utils
+mkdir -p /var/nfsshare
+mount -t nfs yournfsserver:/var/nfsshare /var/nfsshare
+```
+  - Permanently mount the directories by putting entries in your fstab
+   with `$ vim /etc/fstab`:
+```bash
+yournfsserver:/var/nfsshare     /var/nfsshare   nfs defaults 0 0
+```
+  
+### Double Check Before Deploying
 - Alter configuration
   - If necessary, alter the ports to be exposed in `docker-compose.yml`
   - Look through `config/airflow.cfg` and make any necessary changes, e.g., 
 `default_timezone` under `[core]`
-  - If you're running on a laptop, you might want to halve the `dag_concurrency`
-and `parallelism`
-  - Change out the DAGs in the `dags` directory 
+  - Make sure that `/var/nfsshare/dags` exists to store the DAGs in as 
+  specified in `config/airflow.cfg`
 - Deploy
-  - `$ docker stack deploy -c docker-compose.yml -c test.yml airflow`
+  - `$ docker stack deploy -c docker-compose.yml -c dev.yml airflow`
 - Verify
   - `$ docker service ls`
-  - Go to your VM's IP address in a web browser and add `:9090` to see the 
-  Docker visualizer show the status of your containers.
-
-## Multi-Node (Prod/Dev) Deployment
-- Configure ssh access to the nodes which will be part of the Swarm
-  - `$ ssh-keygen -t ecdsa -b 521`
-  - Return twice (no password)
-  - `$ ssh-copy-id -i ~/.ssh/id_ecdsa.pub youruser@yourmachine`
-- Open ports on the nodes
-  - `$ sudo firewall-cmd --zone=public --add-port=2377/tcp --permanent` 
-  - Repeat for `2376/tcp`, `7946/tcp`, `7946/udp`, `4789/udp`
-  - `$ sudo firewall-cmd --reload`
-- Install Docker on all the nodes
-  - `$ sudo yum install -y yum-utils device-mapper-persistent-data lvm2`
-  - `$ sudo yum-config-manager --add-repo 
-  https://download.docker.com/linux/centos/docker-ce.repo`
-  - `$ sudo yum install docker-ce`
-  - `$ sudo systemctl start docker`
-  - `$ sudo systemctl enable docker` to maker Docker start on boot
-- Configure the user you want to run Docker to have no-password sudo access
-  - `$ sudo visudo`
-  - `youruser   ALL=(ALL)   NOPASSWD: ALL`
-- Configure your local Docker daemon to control the ones on the nodes
-  - `$ docker-machine create --driver generic --generic-ip-address=XXX.XXX.XXX.XXX
-  --generic-ssh-key .ssh/id_ecdsa --generic-ssh-user youruser yourmachine`
-- Add any relevant users to Docker group 
-  - `$ sudo usermod -aG docker youruser`
-  - Log out and back in to take effect
-  - Verify membership with `$ grep docker /etc/group`
-- Initialize the Swarm manager
-  - `$ eval $(docker-machine env yourmanager)`
-  - `$ docker swarm init`
-- Join workers to manager
-  - `$ token=$(docker swarm join-token -q worker)`
-  - `$ managerip=$(docker-machine ip yourmanager):2377`
-  - `$ docker-machine ssh yourworker1 "docker swarm join --token $token 
-  $managerip`
-  - Repeat last command for all worker nodes
-  - Verify status with `$ docker node ls`
-- Continue with adding node labels as above under `Installation and Setup`, 
-changing filepaths, etc., as needed to reflect the dev or prod environment
-  - **Important** Be sure to check the node labels under `prod.yml` and 
-   verify they reflect the prod environment node labels accurately
+  - Go to your server's IP address in a web browser and add `:9090` to see the 
+  Docker visualizer show the status of your containers
+- **Important** Be sure to check the node labels under `prod.yml` and 
+   verify they reflect the prod environment node labels accurately before
+   trying to deploy to production
 
 ## Author
 
