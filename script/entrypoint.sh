@@ -41,6 +41,7 @@ AIRFLOW__LDAP__DATA_PROFILER_FILTER="$(jq -r '.ldap.coh.data_profiler_filter' ${
 AIRFLOW__LDAP__BIND_USER="$(jq -r '.ldap.coh.bind_user' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__LDAP__BIND_PASSWORD="$(jq -r '.ldap.coh.bind_password' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__LDAP__BASEDN="$(jq -r '.ldap.coh.basedn' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__LDAP__USER_FILTER="($(jq -r '.ldap.coh.user_filter' ${SECRETS}/ebi_db_conn))"
 AIRFLOW__LDAP__SEARCH_SCOPE="$(jq -r '.ldap.coh.search_scope' ${SECRETS}/ebi_db_conn)"
 
 export \
@@ -60,7 +61,50 @@ export \
   AIRFLOW__LDAP__BIND_USER \
   AIRFLOW__LDAP__BIND_PASSWORD \
   AIRFLOW__LDAP__BASEDN \
-  AIRFLOW__LDAP__SEARCH_SCOPE \
+  AIRFLOW__LDAP__USER_FILTER \
+  AIRFLOW__LDAP__SEARCH_SCOPE
+
+
+# Set RBAC LDAP configuration options for webserver_config.py
+cat > ${AIRFLOW_HOME}/webserver_config.py << EOF
+# -*- coding: utf-8 -*-
+
+import os
+from airflow import configuration as conf
+from flask_appbuilder.security.manager import AUTH_LDAP
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# The SQLAlchemy connection string.
+SQLALCHEMY_DATABASE_URI = conf.get('core', 'SQL_ALCHEMY_CONN')
+
+# Flask-WTF flag for CSRF
+CSRF_ENABLED = True
+
+# ------------------------------------------------------------------------------
+# AUTHENTICATION CONFIG
+# ------------------------------------------------------------------------------
+# For details on how to set up each of the following authentications, see
+# http://flask-appbuilder.readthedocs.io/en/latest/security.html# authentication-methods
+
+# The authentication type
+AUTH_TYPE = AUTH_LDAP
+
+AUTH_ROLE_PUBLIC = "Public"
+AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION_ROLE = "Viewer"
+
+AUTH_LDAP_SERVER = "${AIRFLOW__LDAP__URI}"
+AUTH_LDAP_BIND_USER = "${AIRFLOW__LDAP__BIND_USER}"
+AUTH_LDAP_BIND_PASSWORD = "${AIRFLOW__LDAP__BIND_PASSWORD}"
+AUTH_LDAP_SEARCH = "${AIRFLOW__LDAP__BASEDN}"
+AUTH_LDAP_SEARCH_FILTER = "${AIRFLOW__LDAP__USER_FILTER}"
+AUTH_LDAP_UID_FIELD = "${AIRFLOW__LDAP__USER_NAME_ATTR}"
+AUTH_LDAP_ALLOW_SELF_SIGNED = True
+AUTH_LDAP_USE_TLS = False
+AUTH_LDAP_TLS_DEMAND = True
+AUTH_ROLE_ADMIN = "Admin"
+
+EOF
 
 
 # Install custom python package if requirements.txt is present
