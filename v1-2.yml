@@ -3,7 +3,7 @@ services:
     redis:
         deploy:
             placement:
-                constraints: [node.labels.type == postgres]
+                constraints: [node.role == manager]
 
     postgres:
         deploy:
@@ -14,51 +14,25 @@ services:
         image: sbliefnick/fauteuil:v1-2
         deploy:
             placement:
-                constraints: [node.labels.type == postgres]
+                constraints: [node.role == manager]
 
     webserver:
         image: sbliefnick/fauteuil:v1-2
         deploy:
             placement:
-                constraints: [node.labels.type == celred]
+                constraints: [node.role == worker]
 
     scheduler:
         image: sbliefnick/fauteuil:v1-2
         deploy:
             placement:
-                constraints: [node.labels.type == worker]
+                constraints: [node.role == worker]
 
     worker:
         image: sbliefnick/fauteuil:v1-2
         deploy:
-            replicas: 1
             placement:
-                constraints: [node.labels.type == worker]
-
-    worker2:
-        image: sbliefnick/fauteuil:v1-2
-        depends_on:
-            - scheduler
-        networks:
-            - skynet
-        volumes:
-            - etl_deps:/var/lib/etl_deps/
-        deploy:
-            replicas: 1
-            placement:
-                constraints: [node.labels.type == celred]
-            restart_policy:
-                condition: on-failure
-        secrets:
-            - ebi_db_conn
-            - fernet_key
-            - flask_secret_key
-            - pg_user
-            - pg_password
-            - pg_db
-            - freetds.conf
-            - odbc.ini
-        command: worker
+                constraints: [node.role == worker]
 
     visualizer:
         deploy:
