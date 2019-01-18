@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.0
+ARG AIRFLOW_VERSION=1.10.1
 ARG AIRFLOW_HOME=/usr/local/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
@@ -26,6 +26,7 @@ ENV LC_MESSAGES en_US.UTF-8
 RUN set -ex \
     && buildDeps=' \
         python3-dev \
+        python2.7-dev \
         libkrb5-dev \
         libsasl2-dev \
         libssl-dev \
@@ -34,6 +35,13 @@ RUN set -ex \
         libblas-dev \
         liblapack-dev \
         libpq-dev \
+        libldap2-dev \
+        libsasl2-dev \
+        slapd \
+        ldap-utils \
+        python-tox \
+        lcov \
+        valgrind \
         git \
     ' \
     && apt-get update -yqq \
@@ -70,6 +78,7 @@ RUN set -ex \
 	&& pip install pandas==0.23.4 \
 	&& pip install psycopg2-binary==2.7.5 \
 	&& pip install pyodbc==4.0.24 \
+	&& pip install python-ldap==3.1.0 \
 	&& pip install SQLAlchemy==1.1.18 \
 	&& pip install tableauserverclient==0.7 \
 	&& pip install tableaudocumentapi==0.6 \
@@ -85,16 +94,12 @@ RUN set -ex \
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
-# COPY misc/webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 COPY config/odbcinst.ini /etc/odbcinst.ini
-# COPY dags ${AIRFLOW_HOME}/dags/
 COPY auxiliary ${AIRFLOW_HOME}/auxiliary/
 
 ENV PYTHONPATH ${AIRFLOW_HOME} 
 
 RUN mkdir -p /var/nfsshare
-# RUN mkdir -p ${AIRFLOW_HOME}/intermediate/certs
-# RUN mkdir -p ${AIRFLOW_HOME}/intermediate/private
 RUN chown -R airflow: ${AIRFLOW_HOME} && chown airflow:airflow /var/nfsshare
 RUN chmod +x /entrypoint.sh
 RUN chmod 776 /etc/freetds/freetds.conf
