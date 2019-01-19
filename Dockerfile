@@ -105,7 +105,7 @@ RUN chmod +x /entrypoint.sh
 RUN chmod 776 /etc/freetds/freetds.conf
 RUN chmod 776 /etc/odbc.ini
 
-EXPOSE 8080 5555 8793 6379 5432 9090
+EXPOSE 8080 5555 8793 6379 5432 9090 443
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
