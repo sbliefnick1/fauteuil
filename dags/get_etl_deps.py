@@ -2,8 +2,11 @@
 
 from pathlib import Path
 from datetime import datetime, timedelta
+import logging
+import re
 from urllib.parse import quote_plus
 
+from flask import flash
 import pandas as pd
 import pendulum
 import sqlalchemy as sa
@@ -52,16 +55,37 @@ server = TSC.Server('https://ebi.coh.org', use_server_version=True)
 ds_folder = Path('/var/nfsshare/datasources/')
 
 
+def drop_improperly_named(dataframe, column, name_type):
+    bad_values = []
+    for n in dataframe[column].unique():
+        # check that the names don't have disallowed characters, but if they do
+        if not re.match(r'^[A-Za-z0-9_\-.]+$', n):
+            message = ('The {} name ({}) must be alphanumeric characters,'
+                       'dashes, dots, and underscores exclusively'
+                       .format(name_type, n))
+            # log it
+            logging.warning(message)
+            # flash it on the UI
+            # flash(message, 'warning')
+            bad_values.append(n)
+
+    # remove rows with those values before continuing
+    return dataframe[~dataframe[column].isin(bad_values)]
+
+
 def query_and_save(db_engine):
     # get procedure-view relationship
     sql = 'select * from vw_ebi_airflow_etl_diagram_dev'
     df = pd.read_sql(sql, db_engine)
 
+    df = drop_improperly_named(df, 'ds_name', 'data source')
+    df = drop_improperly_named(df, 'proc_name', 'procedure1')
+
     unique_procs = pd.DataFrame(df.proc_name.unique().tolist(), columns=['procs'])
     # get tables that have no dependency
-    # no_dep_procs = df[(df.dependency_name == '') & (df.num_dependencies == 0)][['proc_name']].drop_duplicates()
     no_dep_procs = pd.DataFrame(df[(df.dependency_name == '') & (df.num_dependencies == 0)].proc_name.unique(),
                                 columns=['proc_name'])
+
     # get tables that have at least one dependency
     dep_procs = df[(df.dependency_name != '') & (df.num_dependencies != 0)][['proc_name',
                                                                              'dependency_name']].drop_duplicates()
@@ -70,6 +94,7 @@ def query_and_save(db_engine):
                 .apply(list)
                 .to_frame()
                 .reset_index())
+
     # create df of procs that have dependencies to loop over and set downstream
     unique_dep_procs = pd.DataFrame(dep_procs.proc_name.unique().tolist(), columns=['procs'])
 
@@ -82,12 +107,6 @@ def query_and_save(db_engine):
 
     # create grouping of data sources with procs they rely on
     ds_map = df[['id', 'ds_name', 'proc_name']].drop_duplicates().reset_index(drop=True)
-    # ds_map = (ds_map.groupby(['id', 'ds_name'])['proc_name']
-    #           .apply(list)
-    #           .to_frame()
-    #           .reset_index())
-    # ds_map = df.loc[df['dependency_name'] != '', ['id', 'ds_name', 'proc_name']].drop_duplicates().reset_index(
-    #         drop=True)
     ds_map = (ds_map.groupby(['id', 'ds_name'])['proc_name']
               .apply(list)
               .to_frame()

@@ -53,11 +53,6 @@ for p in unique_procs.procs:
 # create a python operator for each tableau datasource
 python_ops = {}
 for ds in unique_ds.ds_name:
-    # TODO account for inappropriately named datasources in get_etl_deps
-    if not re.match(r'^[A-Za-z0-9_\-.]+$', ds):
-        logging.warning('The key ({}) has to be made of alphanumeric characters, dashes, dots, and underscores '
-                        'exclusively'.format(ds))
-        continue
     ds_id = unique_ds.loc[unique_ds.ds_name == ds, 'id'].values[0]
     o = PythonOperator(
             task_id='refresh_{}'.format(ds),
@@ -76,8 +71,6 @@ for p in unique_dep_procs.procs:
 
 # set ds refreshes downstream from all their procedure dependencies
 for ds in unique_ds.ds_name:
-    if not re.match(r'^[A-Za-z0-9_\-.]+$', ds):
-        continue
     for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]:
         sql_ops[p] >> python_ops[ds]
 # [sql_ops[p] >> python_ops[ds] for ds in unique_ds.ds_name for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]]
