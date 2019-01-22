@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from datetime import datetime, timedelta
-import logging
-import re
 
 import pandas as pd
 import pendulum
@@ -66,14 +64,11 @@ for ds in unique_ds.ds_name:
 for p in unique_dep_procs.procs:
     for t in proc_map.loc[proc_map.proc_name == p].dependency_name.values[0]:
         sql_ops[t + '_logic'] >> sql_ops[p]
-# [sql_ops[t + '_logic'] >> sql_ops[p] for p in unique_dep_procs.procs for t in proc_map.loc[proc_map.proc_name ==
-# p].dependency_name.values[0]]
 
 # set ds refreshes downstream from all their procedure dependencies
 for ds in unique_ds.ds_name:
     for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]:
         sql_ops[p] >> python_ops[ds]
-# [sql_ops[p] >> python_ops[ds] for ds in unique_ds.ds_name for p in ds_map.loc[ds_map.ds_name == ds].proc_name.values[0]]
 
 # create sensor to wait for etl dependencies to be in json
 deps = ExternalTaskSensor(

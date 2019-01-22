@@ -6,7 +6,6 @@ import logging
 import re
 from urllib.parse import quote_plus
 
-from flask import flash
 import pandas as pd
 import pendulum
 import sqlalchemy as sa
@@ -65,8 +64,6 @@ def drop_improperly_named(dataframe, column, name_type):
                        .format(name_type, n))
             # log it
             logging.warning(message)
-            # flash it on the UI
-            # flash(message, 'warning')
             bad_values.append(n)
 
     # remove rows with those values before continuing
@@ -131,7 +128,6 @@ def get_datasources(tableau_server, tableau_authentication):
     for ds in TSC.Pager(tableau_server.datasources):
         ls = [[ds.id, ds.name, ds.certified, ds.project_name, ds.datasource_type]]
         df = df.append(pd.DataFrame(ls, columns=['id', 'name', 'cert', 'project', 'ds_type']), ignore_index=True)
-        # df = df.append(pd.DataFrame(ls, columns=['cert', 'db', 'ds_type', ''])ignore_index=True)
 
     tableau_server.auth.sign_out()
     df = df[(df.ds_type == 'sqlserver') & (df.project == 'Datasource')]
