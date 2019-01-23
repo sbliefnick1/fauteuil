@@ -76,9 +76,10 @@ def query_and_save(db_engine):
     df = pd.read_sql(sql, db_engine)
 
     df = drop_improperly_named(df, 'ds_name', 'data source')
-    df = drop_improperly_named(df, 'proc_name', 'procedure1')
+    df = drop_improperly_named(df, 'proc_name', 'procedure')
 
     unique_procs = pd.DataFrame(df.proc_name.unique().tolist(), columns=['procs'])
+
     # get tables that have no dependency
     no_dep_procs = pd.DataFrame(df[(df.dependency_name == '') & (df.num_dependencies == 0)].proc_name.unique(),
                                 columns=['proc_name'])
@@ -103,7 +104,36 @@ def query_and_save(db_engine):
             drop=True)
 
     # create grouping of data sources with procs they rely on
-    ds_map = df[['id', 'ds_name', 'proc_name']].drop_duplicates().reset_index(drop=True)
+    ds_map = pd.DataFrame()
+
+    for ds in unique_ds.ds_name:
+        # get non-null dependencies of procs
+        # if there are dependent procs but no dependencies of those procs.
+        # create an empty set
+        try:
+            dep_set = (df[(df['ds_name'] == ds) & (df['dependency_name'] != '')]
+                .groupby(['id', 'ds_name'])['dependency_name']
+                .apply(set)
+                .values[0])
+            dep_set = {d + '_logic' for d in dep_set}
+        except IndexError:
+            dep_set = set()
+
+        # get procs
+        proc_set = (df[df['ds_name'] == ds]
+            .groupby(['id', 'ds_name'])['proc_name']
+            .apply(set)
+            .values[0])
+
+        # determine which dependencies are already covered by procs,
+        # i.e., which procs will already be downstream from the dependencies
+        # so we don't need to set the refreshes downstream from the same deps
+        to_keep = proc_set - dep_set
+        for p in to_keep:
+            temp = df[(df['ds_name'] == ds) & (df['proc_name'] == p)]
+            ds_map = pd.concat([ds_map, temp], ignore_index=True)
+
+    ds_map = ds_map[['id', 'ds_name', 'proc_name']].drop_duplicates().reset_index(drop=True)
     ds_map = (ds_map.groupby(['id', 'ds_name'])['proc_name']
               .apply(list)
               .to_frame()
