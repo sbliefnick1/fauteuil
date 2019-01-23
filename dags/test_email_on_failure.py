@@ -26,7 +26,4 @@ def throw_error(**context):
 t1 = PythonOperator(task_id='first_task',
                     python_callable=throw_error,
                     provide_context=True,
-                    email_on_failure=True,
-                    email_on_retry=True,
-                    email='sbliefnick@coh.org',
                     dag=dag)
