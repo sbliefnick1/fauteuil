@@ -43,6 +43,12 @@ AIRFLOW__LDAP__BIND_PASSWORD="$(jq -r '.ldap.coh.bind_password' ${SECRETS}/ebi_d
 AIRFLOW__LDAP__BASEDN="$(jq -r '.ldap.coh.basedn' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__LDAP__USER_FILTER="($(jq -r '.ldap.coh.user_filter' ${SECRETS}/ebi_db_conn))"
 AIRFLOW__LDAP__SEARCH_SCOPE="$(jq -r '.ldap.coh.search_scope' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_HOST="$(jq -r '.smtp.smtp_host' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_STARTTLS="$(jq -r '.smtp.smtp_starttls' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_SSL="$(jq -r '.smtp.smtp_ssl' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_USER="$(jq -r '.smtp.smtp_user' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_PASSWORD="$(jq -r '.smtp.smtp_password' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_MAIL_FROM="$(jq -r '.smtp.smtp_mail_from' ${SECRETS}/ebi_db_conn)"
 
 export \
   AIRFLOW__CORE__EXECUTOR \
@@ -62,7 +68,13 @@ export \
   AIRFLOW__LDAP__BIND_PASSWORD \
   AIRFLOW__LDAP__BASEDN \
   AIRFLOW__LDAP__USER_FILTER \
-  AIRFLOW__LDAP__SEARCH_SCOPE
+  AIRFLOW__LDAP__SEARCH_SCOPE \
+  AIRFLOW__SMTP__SMTP_HOST \
+  AIRFLOW__SMTP__SMTP_STARTTLS \
+  AIRFLOW__SMTP__SMTP_SSL \
+  AIRFLOW__SMTP__SMTP_USER \
+  AIRFLOW__SMTP__SMTP_PASSWORD \
+  AIRFLOW__SMTP__SMTP_MAIL_FROM
 
 
 # Set RBAC LDAP configuration options for webserver_config.py
