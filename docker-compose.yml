@@ -81,6 +81,7 @@ services:
             - pg_db
             - freetds.conf
             - odbc.ini
+            - base_url
         command: webserver
 
     scheduler:
@@ -110,6 +111,7 @@ services:
             - pg_db
             - freetds.conf
             - odbc.ini
+            - base_url
         command: scheduler
 
     worker:
@@ -138,6 +140,7 @@ services:
             - pg_db
             - freetds.conf
             - odbc.ini
+            - base_url
         command: worker
 
     visualizer:
@@ -173,4 +176,6 @@ secrets:
     freetds.conf:
         external: true
     odbc.ini:
+        external: true
+    base_url:
         external: true
