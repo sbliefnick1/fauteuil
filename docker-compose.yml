@@ -73,15 +73,21 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - ebi_db_conn
-            - fernet_key
-            - flask_secret_key
+            - source: ebi_db_conn
+              target: ebi_db_conn
+            - source: fernet_key
+              target: fernet_key
+            - source: flask_secret_key
+              target: flask_secret_key
+            - source: freetds.conf
+              target: freetds.conf
+            - source: odbc.ini
+              target: odbc.ini
+            - source: base_url
+              target: base_url
             - pg_user
             - pg_password
             - pg_db
-            - freetds.conf
-            - odbc.ini
-            - base_url
         command: webserver
 
     scheduler:
@@ -103,15 +109,21 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - ebi_db_conn
-            - fernet_key
-            - flask_secret_key
+            - source: ebi_db_conn
+              target: ebi_db_conn
+            - source: fernet_key
+              target: fernet_key
+            - source: flask_secret_key
+              target: flask_secret_key
+            - source: freetds.conf
+              target: freetds.conf
+            - source: odbc.ini
+              target: odbc.ini
+            - source: base_url
+              target: base_url
             - pg_user
             - pg_password
             - pg_db
-            - freetds.conf
-            - odbc.ini
-            - base_url
         command: scheduler
 
     worker:
@@ -132,15 +144,21 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - ebi_db_conn
-            - fernet_key
-            - flask_secret_key
+            - source: ebi_db_conn
+              target: ebi_db_conn
+            - source: fernet_key
+              target: fernet_key
+            - source: flask_secret_key
+              target: flask_secret_key
+            - source: freetds.conf
+              target: freetds.conf
+            - source: odbc.ini
+              target: odbc.ini
+            - source: base_url
+              target: base_url
             - pg_user
             - pg_password
             - pg_db
-            - freetds.conf
-            - odbc.ini
-            - base_url
         command: worker
 
     visualizer:
