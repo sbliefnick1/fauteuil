@@ -4,7 +4,7 @@ on a multi-node cluster. This has been used on nodes running CentOS 7.5. Aside
 from a few OS-specific changes to set up details and replacing configurations 
 and DAGs with your own, you should be able to deploy this repo with minimal
 reworking. Fauteuil may work with other versions of Docker but I have developed
-it using v18.06.1-ce on High Sierra 10.13.6. 
+it using v18.09.1-ce on High Sierra 10.13.6. 
 
 Fauteuil means *armchair* in
 French, and I wanted a completely distinct word to refer to the project while
@@ -24,6 +24,7 @@ although likely with more nodes and different passwords.
 ### Deployment-Specific Configurations Within Fauteuil
 - `config/airflow.cfg`
 - `config/odbcinst.ini`
+- `secrets/{dev,prod}/base_url`
 - `secrets/{dev,prod}/fernet_key`
 - `secrets/{dev,prod}/flask_secret_key`
 - `secrets/{dev,prod}/pg_password`
@@ -84,8 +85,8 @@ although likely with more nodes and different passwords.
 - Prepare secrets files
 ```bash
   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > secrets/test/fernet_key
-  openssl rand -base64 24 | tr -d "+=/" > secrets/test/flask_secret_key
-  openssl rand -base64 24 | tr -d "+=/" > secrets/test/pg_password
+  openssl rand -base64 24 | tr -d "+=/" > secrets/dev/flask_secret_key
+  openssl rand -base64 24 | tr -d "+=/" > secrets/dev/pg_password
   echo airflow > secrets/pg_db
   echo airflow > secrets/pg_user
 ```
@@ -112,9 +113,10 @@ EOF
 - Create secrets (run this on a manager node)
 ```bash
   eval $(docker-machine env yourmanager1)
-  docker secret create fernet_key secrets/test/fernet_key
-  docker secret create flask_secret_key secrets/test/flask_secret_key
-  docker secret create pg_password secrets/test/pg_password
+  docker secret create base_url secrets/dev/base_url
+  docker secret create fernet_key secrets/dev/fernet_key
+  docker secret create flask_secret_key secrets/dev/flask_secret_key
+  docker secret create pg_password secrets/dev/pg_password
   docker secret create pg_db secrets/pg_db
   docker secret create pg_user secrets/pg_user
   docker secret create freetds.conf secrets/freetds.conf
@@ -178,8 +180,12 @@ yournfsserver:/var/nfsshare     /var/nfsshare   nfs defaults 0 0
 `default_timezone` under `[core]`
   - Make sure that `/var/nfsshare/dags` exists to store the DAGs in as 
   specified in `config/airflow.cfg`
+  - Check `script/entrypoint.sh` because many of the `config/airflow.cfg` 
+  settings we override using environment variables
 - Deploy
   - `$ docker stack deploy -c docker-compose.yml -c dev.yml airflow`
+  - You can chain together `.yml` files when deploying in order to extend or 
+  override settings in the previous file
 - Verify
   - `$ docker service ls`
   - Go to your server's IP address in a web browser and add `:9090` to see the 
