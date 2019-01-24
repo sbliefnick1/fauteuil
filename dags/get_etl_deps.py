@@ -72,7 +72,7 @@ def drop_improperly_named(dataframe, column, name_type):
 
 def query_and_save(db_engine):
     # get procedure-view relationship
-    sql = 'select * from vw_ebi_airflow_etl_diagram_dev'
+    sql = 'select * from vw_ebi_airflow_etl_diagram'
     df = pd.read_sql(sql, db_engine)
 
     df = drop_improperly_named(df, 'ds_name', 'data source')
