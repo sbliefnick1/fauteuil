@@ -1,5 +1,6 @@
 # fauteuil
-Fauteuil is an integration of Docker and Apache Airflow, designed to be deployed
+Fauteuil is an integration of [Docker](https://www.docker.com/) and 
+[Apache Airflow](https://github.com/apache/airflow) (whose explanations are beyond the scope of this project), designed to be deployed
 on a multi-node cluster. This has been used on nodes running CentOS 7.5. Aside
 from a few OS-specific changes to set up details and replacing configurations 
 and DAGs with your own, you should be able to deploy this repo with minimal
@@ -8,7 +9,7 @@ it using v18.09.1-ce on High Sierra 10.13.6.
 
 Fauteuil means *armchair* in
 French, and I wanted a completely distinct word to refer to the project while
-'getting comfortable' with Docker and Airflow.
+'getting comfortable' :sunglasses: with Docker and Airflow.
 
 ## Getting Started with a Multi-Node Development Deployment
 
@@ -175,13 +176,14 @@ yournfsserver:/var/nfsshare     /var/nfsshare   nfs defaults 0 0
   
 ### Double Check Before Deploying
 - Alter configuration
-  - If necessary, alter the ports to be exposed in `docker-compose.yml`
-  - Look through `config/airflow.cfg` and make any necessary changes, e.g., 
-`default_timezone` under `[core]`
+  - If necessary, alter the ports to be exposed in 
+  [`docker-compose.yml`](https://github.com/sbliefnick1/fauteuil/blob/v1-2/docker-compose.yml)
+  - Look through [`config/airflow.cfg`](https://github.com/sbliefnick1/fauteuil/blob/v1-2/config/airflow.cfg)
+   and make any necessary changes, e.g., `default_timezone` under `[core]`
   - Make sure that `/var/nfsshare/dags` exists to store the DAGs in as 
   specified in `config/airflow.cfg`
-  - Check `script/entrypoint.sh` because many of the `config/airflow.cfg` 
-  settings we override using environment variables
+  - Check [`script/entrypoint.sh`](https://github.com/sbliefnick1/fauteuil/blob/v1-2/script/entrypoint.sh)
+   because many of the `config/airflow.cfg` settings we override using environment variables
 - Deploy
   - `$ docker stack deploy -c docker-compose.yml -c dev.yml airflow`
   - You can chain together `.yml` files when deploying in order to extend or 
