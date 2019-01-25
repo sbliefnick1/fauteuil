@@ -15,7 +15,7 @@ services:
         image: postgres:10.3
         environment:
             - POSTGRES_USER_FILE=/run/secrets/pg_user
-            - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password_v1
+            - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
             - POSTGRES_DB_FILE=/run/secrets/pg_db
         volumes:
             - pgdata:/var/lib/postgresql/data/
@@ -28,8 +28,9 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
+            - source: pg_password_v1
+              target: pg_password
             - pg_user
-            - pg_password
             - pg_db
 
     flower:
