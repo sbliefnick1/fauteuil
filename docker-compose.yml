@@ -140,7 +140,7 @@ services:
               source: /etc/ssl/certs
               target: /usr/local/airflow/certs
         deploy:
-            replicas: 2
+            replicas: 3
             restart_policy:
                 condition: on-failure
         secrets:

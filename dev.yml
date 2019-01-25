@@ -31,6 +31,7 @@ services:
     worker:
         image: sbliefnick/fauteuil:dev-latest
         deploy:
+            replicas: 2
             placement:
                 constraints: [node.role == worker]
 
