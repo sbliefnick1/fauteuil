@@ -43,8 +43,14 @@ although likely with more nodes and different passwords.
 - Configure ssh access to the nodes which will be part of the Swarm
   - `$ ssh-keygen -t ecdsa -b 521`
   - Return twice (no password)
+  - You'll probably want to do this as yourself and the user you want to execute
+  Docker commands on the nods
   - `$ ssh-copy-id -i ~/.ssh/id_ecdsa.pub youruser@yourmachine`
   - Repeat for each additional node
+- Configure the user you want to run Docker to have no-password sudo access on 
+the nodes
+  - `$ sudo visudo`
+  - `youruser   ALL=(ALL)   NOPASSWD: ALL`
 - Open ports on the nodes
   - `$ sudo firewall-cmd --zone=public --add-port=2377/tcp --permanent` 
   - Repeat for `2376/tcp`, `7946/tcp`, `7946/udp`, `4789/udp`
@@ -57,14 +63,14 @@ although likely with more nodes and different passwords.
   sudo systemctl start docker
   sudo systemctl enable docker  # to maker Docker start on boot
 ```
-- Configure the user you want to run Docker to have no-password sudo access
-  - `$ sudo visudo`
-  - `youruser   ALL=(ALL)   NOPASSWD: ALL`
   
 ### Docker configuration
 - Configure your local Docker daemon to control the ones on the nodes
+  - Make sure you don't have an active SSH connection to the node you're trying
+  to configure
+  - Also make sure you've SSHed into each box as yourself and as the Docker user
   - `$ docker-machine create --driver generic --generic-ip-address=XXX.XXX.XXX.XXX
-  --generic-ssh-key .ssh/id_ecdsa --generic-ssh-user youruser yourmachine`
+  --generic-ssh-key ~/.ssh/id_ecdsa --generic-ssh-user youruser yourmachine`
 - Add any relevant users to Docker group 
   - `$ sudo usermod -aG docker youruser`
   - Log out and back in to take effect
@@ -76,7 +82,7 @@ although likely with more nodes and different passwords.
   - `$ token=$(docker swarm join-token -q worker)`
   - `$ managerip=$(docker-machine ip yourmanager):2377`
   - `$ docker-machine ssh yourworker1 "docker swarm join --token $token 
-  $managerip`
+  $managerip"`
   - Repeat last command for all worker nodes
   - Verify status with `$ docker node ls`
 - Add labels to the machine
@@ -85,11 +91,12 @@ although likely with more nodes and different passwords.
 ### Deployment-Specific Configuration
 - Prepare secrets files
 ```bash
-  python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > secrets/test/fernet_key
+  python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > secrets/dev/fernet_key
   openssl rand -base64 24 | tr -d "+=/" > secrets/dev/flask_secret_key
   openssl rand -base64 24 | tr -d "+=/" > secrets/dev/pg_password
   echo airflow > secrets/pg_db
   echo airflow > secrets/pg_user
+  echo "https://yourmachine" > base_url
 ```
   - Optional if you want to use ODBC/DSN connections:
 ```bash
@@ -130,21 +137,21 @@ without having to rebuild the Docker image every time.
 
 - On the server machine (manager or other designated DAG repo node)
 ```bash
-yum install nfs-utils
-mkdir /var/nfsshare
-chmod -R 777 /var/nfsshare
-chown nfsnobody:nfsnobody /var/nfsshare
-systemctl enable rpcbind
-systemctl enable nfs-server
-systemctl enable nfs-lock
-systemctl enable nfs-idmap
-systemctl start rpcbind
-systemctl start nfs-server
-systemctl start nfs-lock
-systemctl start nfs-idmap
+sudo yum install nfs-utils
+sudo mkdir /var/nfsshare
+sudo chmod -R 777 /var/nfsshare
+sudo chown nfsnobody:nfsnobody /var/nfsshare
+sudo systemctl enable rpcbind
+sudo systemctl enable nfs-server
+sudo systemctl enable nfs-lock
+sudo systemctl enable nfs-idmap
+sudo systemctl start rpcbind
+sudo systemctl start nfs-server
+sudo systemctl start nfs-lock
+sudo systemctl start nfs-idmap
 ```
 
-  - Edit the exports file with `$ vim /etc/exports` and add an entry as follows
+  - Edit the exports file with `$ vi /etc/exports` and add an entry as follows
 for each client machine you wish to be able to access the shared directory 
 (change for your relevant IPs):
 ```bash
@@ -156,20 +163,20 @@ for each client machine you wish to be able to access the shared directory
 
   - Allow firewall settings
 ```bash
-firewall-cmd --permanent --zone=public --add-service=nfs
-firewall-cmd --permanent --zone=public --add-service=mountd
-firewall-cmd --permanent --zone=public --add-service=rpc-bind
-firewall-cmd --reload
+sudo firewall-cmd --permanent --zone=public --add-service=nfs
+sudo firewall-cmd --permanent --zone=public --add-service=mountd
+sudo firewall-cmd --permanent --zone=public --add-service=rpc-bind
+sudo firewall-cmd --reload
 ```
 
 - On the client machines (worker nodes)
 ```bash
-yum install nfs-utils
-mkdir -p /var/nfsshare
-mount -t nfs yournfsserver:/var/nfsshare /var/nfsshare
+sudo yum install nfs-utils
+sudo mkdir -p /var/nfsshare
+sudo mount -t nfs yournfsserver:/var/nfsshare /var/nfsshare
 ```
   - Permanently mount the directories by putting entries in your fstab
-   with `$ vim /etc/fstab`:
+   with `$ sudo vi /etc/fstab`:
 ```bash
 yournfsserver:/var/nfsshare     /var/nfsshare   nfs defaults 0 0
 ```
