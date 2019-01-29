@@ -40,6 +40,7 @@ for p in unique_procs.procs:
     o = MsSqlOperator(
             sql='exec {};'.format(p),
             task_id='exec_{}'.format(p),
+            autocommit=True,
             mssql_conn_id=conn_id,
             pool=pool_id,
             dag=dag
