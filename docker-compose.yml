@@ -175,6 +175,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            placement:
+                constraints: [node.role == manager]
 
 networks:
     skynet:
@@ -185,19 +187,19 @@ volumes:
 secrets:
     pg_user:
         external: true
-    pg_password:
+    pg_password_v1:
         external: true
     pg_db:
         external: true
-    fernet_key:
+    fernet_key_v1:
         external: true
-    flask_secret_key:
+    flask_secret_key_v1:
         external: true
-    ebi_db_conn:
+    ebi_db_conn_v1:
         external: true
-    freetds.conf:
+    freetds.conf_v1:
         external: true
-    odbc.ini:
+    odbc.ini_v1:
         external: true
-    base_url:
+    base_url_v1:
         external: true
