@@ -17,6 +17,8 @@ services:
             - POSTGRES_USER_FILE=/run/secrets/pg_user
             - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
             - POSTGRES_DB_FILE=/run/secrets/pg_db
+            - MAX_CONNECTIONS=500
+            - SHARED_BUFFERS=256MB
         volumes:
             - pgdata:/var/lib/postgresql/data/
         ports:
