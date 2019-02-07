@@ -34,6 +34,7 @@ services:
               target: pg_password
             - pg_user
             - pg_db
+        command: postgres -c 'shared_buffers=256MB' -c 'max_connections=500'
 
     flower:
         image: sbliefnick/fauteuil:latest
