@@ -26,7 +26,7 @@ dag = DAG('kill_tableau_job_by_id', default_args=default_args, catchup=False, sc
 
 def get_job_id(tb_job_id):
     # TODO allow for a list to be input, but how is the variable returned from the UI if it's a list?
-    pg = get_json_secret('ebi_db_conn')['db_connetions']['tableau_pg']
+    pg = get_json_secret('ebi_db_conn')['db_connections']['tableau_pg']
     pg_params = '{user}:{password}@{server}:{port}/{database}'.format(**pg)
     tpg_engine = sa.create_engine('postgresql+psycopg2://{}'.format(pg_params))
 
