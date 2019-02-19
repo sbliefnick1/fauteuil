@@ -62,6 +62,7 @@ the nodes
   sudo yum install docker-ce
   sudo systemctl start docker
   sudo systemctl enable docker  # to maker Docker start on boot
+  sudo yum install git  # if you need it for the DAGs folder, for example
 ```
   
 ### Docker configuration
