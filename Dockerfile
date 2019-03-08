@@ -84,6 +84,7 @@ RUN set -ex \
 	&& pip install SQLAlchemy==1.1.18 \
 	&& pip install tableauserverclient==0.7 \
 	&& pip install tableaudocumentapi==0.6 \
+	&& pip install "tornado>=4.2.0,<6.0.0" \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
