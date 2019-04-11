@@ -52,6 +52,7 @@ AIRFLOW__SMTP__SMTP_PASSWORD="$(jq -r '.smtp.smtp_password' ${SECRETS}/ebi_db_co
 AIRFLOW__SMTP__SMTP_MAIL_FROM="$(jq -r '.smtp.smtp_mail_from' ${SECRETS}/ebi_db_conn)"
 
 export \
+  AIRFLOW_HOME \
   AIRFLOW__CORE__EXECUTOR \
   AIRFLOW__CORE__SQL_ALCHEMY_CONN \
   AIRFLOW__CORE__LOAD_EXAMPLES \
