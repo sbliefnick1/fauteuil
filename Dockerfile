@@ -12,9 +12,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.1
+ARG AIRFLOW_VERSION=1.10.3
 ARG AIRFLOW_HOME=/usr/local/airflow
-ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -76,7 +75,7 @@ RUN set -ex \
     && pip install celery[redis]==4.1.1 \
     && pip install gevent==1.3.6 \
 	&& pip install pandas==0.23.4 \
-	&& pip install paramiko==2.4.1 \
+	&& pip install paramiko==2.4.2 \
 	&& pip install psycopg2-binary==2.7.5 \
 	&& pip install pyodbc==4.0.24 \
 	&& pip install python-ldap==3.1.0 \
