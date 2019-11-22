@@ -1,6 +1,6 @@
 alembic==0.9.10
 amqp==2.3.2
-apache-airflow==1.10.3
+apache-airflow==1.10.6
 asn1crypto==0.24.0
 Babel==2.6.0
 bcrypt==3.1.4
