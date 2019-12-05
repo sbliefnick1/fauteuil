@@ -38,7 +38,7 @@ RUN set -ex \
         libsasl2-dev \
         slapd \
         ldap-utils \
-        python-tox \
+      #  python-tox \
         lcov \
         valgrind \
         git \
@@ -71,7 +71,8 @@ RUN set -ex \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.4 \
     && pip install click==6.7 \
-    && pip install apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
+    # pymssql is discontinued; solution until airflow 1.10.7
+    && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
     && pip install celery[redis]==4.1.1 \
     && pip install gevent==1.3.6 \
 	&& pip install pandas==0.23.4 \
