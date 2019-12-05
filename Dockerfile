@@ -81,7 +81,7 @@ RUN set -ex \
 	&& pip install pyodbc==4.0.24 \
 	&& pip install python-ldap==3.1.0 \
 	&& pip install sshtunnel==0.1.4 \
-	&& pip install SQLAlchemy==1.1.18 \
+	&& pip install SQLAlchemy==1.2.11 \
 	&& pip install tableauserverclient==0.7 \
 	&& pip install tableaudocumentapi==0.6 \
 	&& pip install "tornado>=4.2.0,<6.0.0" \
