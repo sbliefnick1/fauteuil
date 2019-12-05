@@ -5,7 +5,7 @@
 # SOURCE https://github.com/sbliefnick/fauteuil
 # Based on puckel/docker-airflow https://github.com/puckel/docker-airflow
 
-FROM python:3.5-slim
+FROM python:3.7-slim
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
