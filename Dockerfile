@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.6
+ARG AIRFLOW_VERSION=1.10.7
 ARG AIRFLOW_HOME=/usr/local/airflow
 
 # Define en_US.
@@ -72,7 +72,7 @@ RUN set -ex \
     && pip install pyasn1==0.4.8 \
     && pip install click==7.0 \
     # pymssql is discontinued; solution until airflow 1.10.7
-    && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
+    && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres,statsd]==$AIRFLOW_VERSION \
     && pip install celery[redis]==4.3.0 \
     && pip install gevent==1.3.6 \
 	&& pip install pandas==0.23.4 \
