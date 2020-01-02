@@ -181,6 +181,24 @@ services:
             placement:
                 constraints: [node.role == manager]
 
+    statsd:
+        image: hopsoft/graphite-statsd
+        networks:
+            - skynet
+        environment:
+            - GRAPHITE_TIME_ZONE=America/Los_Angeles
+            - GF_AUTH_LDAP_ENABLED=true
+            - GF_AUTH_LDAP_CONFIG_FILE=/run/secrets/ldap.toml
+            - GF_USERS_ALLOW_SIGN_UP=false
+            - GF_USERS_LOGIN_HINT=username
+        secrets:
+            - ldap.toml
+        ports:
+            # HOST_PORT:CONTAINER_PORT
+            - "80:80"
+            - "81:81"
+            - "8126:8126"
+
 networks:
     skynet:
 
@@ -206,3 +224,5 @@ secrets:
         external: true
     base_url_v1:
         external: true
+    ldap.toml:
+        file: ./secrets/ldap.toml

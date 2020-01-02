@@ -5,14 +5,14 @@
 # SOURCE https://github.com/sbliefnick/fauteuil
 # Based on puckel/docker-airflow https://github.com/puckel/docker-airflow
 
-FROM python:3.5-slim
+FROM python:3.7-slim
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.3
+ARG AIRFLOW_VERSION=1.10.7
 ARG AIRFLOW_HOME=/usr/local/airflow
 
 # Define en_US.
@@ -38,7 +38,7 @@ RUN set -ex \
         libsasl2-dev \
         slapd \
         ldap-utils \
-        python-tox \
+      #  python-tox \
         lcov \
         valgrind \
         git \
@@ -66,22 +66,23 @@ RUN set -ex \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
     && pip install Cython==0.28.5 \
-    && pip install pytz==2018.5 \
+    && pip install pytz==2019.3 \
     && pip install pyOpenSSL==18.0.0 \
     && pip install ndg-httpsclient==0.5.1 \
-    && pip install pyasn1==0.4.4 \
-    && pip install click==6.7 \
-    && pip install apache-airflow[celery,crypto,ldap,mssql,password,postgres]==$AIRFLOW_VERSION \
-    && pip install celery[redis]==4.1.1 \
+    && pip install pyasn1==0.4.8 \
+    && pip install click==7.0 \
+    # pymssql is discontinued; solution until airflow 1.10.7
+    && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres,statsd]==$AIRFLOW_VERSION \
+    && pip install celery[redis]==4.3.0 \
     && pip install gevent==1.3.6 \
 	&& pip install pandas==0.23.4 \
 	&& pip install paramiko==2.4.2 \
 	&& pip install psycopg2-binary==2.7.5 \
 	&& pip install pyodbc==4.0.24 \
-	&& pip install python-ldap==3.1.0 \
+	&& pip install python-ldap==3.2.0 \
 	&& pip install sshtunnel==0.1.4 \
-	&& pip install SQLAlchemy==1.1.18 \
-	&& pip install tableauserverclient==0.7 \
+	&& pip install SQLAlchemy==1.3.11 \
+	&& pip install tableauserverclient==0.9 \
 	&& pip install tableaudocumentapi==0.6 \
 	&& pip install "tornado>=4.2.0,<6.0.0" \
     && apt-get purge --auto-remove -yqq $buildDeps \
