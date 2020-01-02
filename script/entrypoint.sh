@@ -107,7 +107,7 @@ AUTH_TYPE = AUTH_LDAP
 AUTH_ROLE_PUBLIC = "Public"
 AUTH_USER_REGISTRATION = True
 # Set to Admin on the first deployment, log in and create an account, then change to Viewer and redeploy
-AUTH_USER_REGISTRATION_ROLE = "Admin"
+AUTH_USER_REGISTRATION_ROLE = "Viewer"
 
 AUTH_LDAP_SERVER = "${AIRFLOW__LDAP__URI}"
 AUTH_LDAP_BIND_USER = "${AIRFLOW__LDAP__BIND_USER}"
