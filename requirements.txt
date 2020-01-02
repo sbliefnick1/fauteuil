@@ -1,6 +1,6 @@
 alembic==1.3.1
 amqp==2.5.2
-apache-airflow==1.10.6
+apache-airflow==1.10.7
 apispec==3.1.0
 argcomplete==1.10.3
 asn1crypto==0.24.0
@@ -10,6 +10,7 @@ bcrypt==3.1.4
 billiard==3.6.1.0
 bleach==2.1.4
 cached-property==1.5.1
+cattrs==0.9.0
 celery==4.3.0
 certifi==2018.8.24
 cffi==1.11.5
@@ -25,7 +26,7 @@ defusedxml==0.5.0
 dill==0.2.8.2
 docutils==0.14
 Flask==1.1.1
-Flask-Admin==1.5.3
+Flask-Admin==1.5.4
 Flask-AppBuilder==1.13.1
 Flask-Babel==0.11.1
 Flask-Bcrypt==0.7.1
@@ -101,6 +102,7 @@ setproctitle==1.1.10
 six==1.11.0
 smmap2==2.0.4
 SQLAlchemy==1.3.11
+SQLAlchemy-JSONField==0.9.0
 sshtunnel==0.1.4
 statsd==3.3.0
 tableaudocumentapi==0.6
@@ -111,6 +113,8 @@ termcolor==1.1.0
 text-unidecode==1.2
 thrift==0.11.0
 tornado==5.1.1
+typing==3.7.4.1
+typing-extensions==3.7.4.1
 tzlocal==1.5.1
 unicodecsv==0.14.1
 urllib3==1.24.3
