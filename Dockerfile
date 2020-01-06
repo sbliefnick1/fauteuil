@@ -67,7 +67,7 @@ RUN set -ex \
     && pip install -U pip setuptools wheel \
     && pip install Cython==0.28.5 \
     && pip install pytz==2019.3 \
-    && pip install pyOpenSSL==18.0.0 \
+    && pip install pyOpenSSL==19.1.0 \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.8 \
     && pip install click==7.0 \
