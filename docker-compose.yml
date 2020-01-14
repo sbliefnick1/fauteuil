@@ -194,10 +194,23 @@ services:
         secrets:
             - ldap.toml
         ports:
-            # HOST_PORT:CONTAINER_PORT
-            - "80:80"
             - "81:81"
             - "8126:8126"
+
+    grafana:
+        image: grafana/grafana
+        networks:
+            - skynet
+        environment:
+            # check recent grafana version to make sure these vars still work
+            - GF_AUTH_LDAP_ENABLED=true
+            - GF_AUTH_LDAP_CONFIG_FILE=/run/secrets/ldap.toml
+            - GF_USERS_ALLOW_SIGN_UP=false
+            - GF_USERS_LOGIN_HINT=username
+        secrets:
+            - ldap.toml
+        ports:
+            - "3000:3000"
 
 networks:
     skynet:
