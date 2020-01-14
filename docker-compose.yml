@@ -77,7 +77,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v1
+            - source: ebi_db_conn_v2
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -114,7 +114,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v1
+            - source: ebi_db_conn_v2
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -150,7 +150,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v1
+            - source: ebi_db_conn_v2
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -229,7 +229,7 @@ secrets:
         external: true
     flask_secret_key_v1:
         external: true
-    ebi_db_conn_v1:
+    ebi_db_conn_v2:
         external: true
     freetds.conf_v1:
         external: true
