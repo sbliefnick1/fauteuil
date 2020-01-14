@@ -234,3 +234,5 @@ based
 - [Devilrancy](https://github.com/devilrancy) whose pull request for adding
 Swarm support on the above allowed me to finally understand how to configure
 Swarm successfully
+- [hopsoft](https://github.com/hopsoft/docker-graphite-statsd) whose graphite/statsd image makes it much easier to
+ implement
