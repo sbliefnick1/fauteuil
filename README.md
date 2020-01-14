@@ -203,6 +203,19 @@ yournfsserver:/var/nfsshare     /var/nfsshare   nfs defaults 0 0
 - **Important** Be sure to check the node labels under `prod.yml` and 
    verify they reflect the prod environment node labels accurately before
    trying to deploy to production
+   
+### Secure graphite and grafana
+- Secure graphite Django admin
+  - username: root
+  - password: root
+  - First log in at http://localhost:81/account/login
+  - Then update the root user's profile at http://localhost:81/admin/auth/user/1/
+- Secure grafana
+  - username: admin
+  - password: admin
+  - If you pass an ldap.toml file you can log in as yourself and change the password or other attributes for admin, 
+  or you can log in as admin and make changes as well
+- Finally, create a new datasource in grafana pointing to graphite
 
 ## Author
 
