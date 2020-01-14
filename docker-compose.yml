@@ -191,6 +191,8 @@ services:
             - GF_AUTH_LDAP_CONFIG_FILE=/run/secrets/ldap.toml
             - GF_USERS_ALLOW_SIGN_UP=false
             - GF_USERS_LOGIN_HINT=username
+        volumes:
+            - statsd_data:/opt/graphite/storage
         secrets:
             - ldap.toml
         ports:
@@ -207,6 +209,8 @@ services:
             - GF_AUTH_LDAP_CONFIG_FILE=/run/secrets/ldap.toml
             - GF_USERS_ALLOW_SIGN_UP=false
             - GF_USERS_LOGIN_HINT=username
+        volumes:
+            - grafana_data:/var/lib/grafana
         secrets:
             - ldap.toml
         ports:
@@ -217,6 +221,8 @@ networks:
 
 volumes:
     pgdata:
+    statsd_data:
+    grafana_data:
 
 secrets:
     pg_user:
