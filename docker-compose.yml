@@ -192,7 +192,9 @@ services:
             - GF_USERS_ALLOW_SIGN_UP=false
             - GF_USERS_LOGIN_HINT=username
         volumes:
-            - statsd_data:/opt/graphite/storage
+            - type: bind
+              source: /var/nfsshare/logs/graphite
+              target: /opt/graphite/storage
         secrets:
             - ldap.toml
         ports:
@@ -210,7 +212,9 @@ services:
             - GF_USERS_ALLOW_SIGN_UP=false
             - GF_USERS_LOGIN_HINT=username
         volumes:
-            - grafana_data:/var/lib/grafana
+            - type: bind
+              source: /var/nfsshare/logs/grafana
+              target: /var/lib/grafana
         secrets:
             - ldap.toml
         ports:
