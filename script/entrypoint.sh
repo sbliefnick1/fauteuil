@@ -49,6 +49,7 @@ AIRFLOW__SMTP__SMTP_STARTTLS="$(jq -r '.smtp.smtp_starttls' ${SECRETS}/ebi_db_co
 AIRFLOW__SMTP__SMTP_SSL="$(jq -r '.smtp.smtp_ssl' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__SMTP__SMTP_USER="$(jq -r '.smtp.smtp_user' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__SMTP__SMTP_PASSWORD="$(jq -r '.smtp.smtp_password' ${SECRETS}/ebi_db_conn)"
+AIRFLOW__SMTP__SMTP_PORT="$(jq -r '.smtp.smtp_port' ${SECRETS}/ebi_db_conn)"
 AIRFLOW__SMTP__SMTP_MAIL_FROM="$(jq -r '.smtp.smtp_mail_from' ${SECRETS}/ebi_db_conn)"
 
 export \
@@ -77,6 +78,7 @@ export \
   AIRFLOW__SMTP__SMTP_SSL \
   AIRFLOW__SMTP__SMTP_USER \
   AIRFLOW__SMTP__SMTP_PASSWORD \
+  AIRFLOW__SMTP__SMTP_PORT \
   AIRFLOW__SMTP__SMTP_MAIL_FROM
 
 
