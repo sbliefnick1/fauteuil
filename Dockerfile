@@ -70,7 +70,7 @@ RUN set -ex \
     && pip install pyOpenSSL==19.1.0 \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.8 \
-    && pip install click==7.0 \
+    && pip install click==7.1.1 \
     # pymssql is discontinued; solution until airflow 1.10.7
     && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres,statsd]==$AIRFLOW_VERSION \
     && pip install celery[redis]==4.3.0 \
@@ -84,7 +84,7 @@ RUN set -ex \
 	&& pip install SQLAlchemy==1.3.11 \
 	&& pip install tableauserverclient==0.9 \
 	&& pip install tableaudocumentapi==0.6 \
-	&& pip install "tornado>=4.2.0,<6.0.0" \
+	&& pip install tornado==5.1.1 \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
