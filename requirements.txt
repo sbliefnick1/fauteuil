@@ -1,6 +1,6 @@
 alembic==1.3.1
 amqp==2.5.2
-apache-airflow==1.10.7
+apache-airflow==1.10.10
 apispec==3.1.0
 argcomplete==1.10.3
 asn1crypto==0.24.0
@@ -8,7 +8,7 @@ attrs==19.3.0
 Babel==2.6.0
 bcrypt==3.1.4
 billiard==3.6.1.0
-bleach==2.1.4
+bleach>=3.1.4
 cached-property==1.5.1
 cattrs==0.9.0
 celery==4.3.0
@@ -74,7 +74,7 @@ pandas==0.23.4
 paramiko==2.4.2
 pendulum==1.4.4
 prison==0.1.0
-psutil==4.4.2
+psutil>=5.6.6
 psycopg2==2.7.5
 psycopg2-binary==2.7.5
 pyasn1==0.4.8
