@@ -186,8 +186,6 @@ networks:
 
 volumes:
     pgdata:
-    statsd_data:
-    grafana_data:
 
 secrets:
     pg_user:
@@ -208,5 +206,3 @@ secrets:
         external: true
     base_url_v1:
         external: true
-    ldap.toml:
-        file: ./secrets/ldap.toml

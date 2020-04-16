@@ -38,3 +38,7 @@ services:
             - ldap.toml
         ports:
             - "3000:3000"
+
+secrets:
+    ldap.toml:
+        file: ./secrets/ldap.toml
