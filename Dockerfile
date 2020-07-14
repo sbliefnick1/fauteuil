@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.10
+ARG AIRFLOW_VERSION=1.10.11
 ARG AIRFLOW_HOME=/usr/local/airflow
 
 # Define en_US.
@@ -65,24 +65,23 @@ RUN set -ex \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
-    && pip install Cython==0.28.5 \
-    && pip install pytz==2019.3 \
+    && pip install Cython==0.29.19 \
+    && pip install pytz==2020.1 \
     && pip install pyOpenSSL==19.1.0 \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.8 \
-    && pip install click==7.1.1 \
-    # pymssql is discontinued; solution until airflow 1.10.7
+    && pip install click==7.1.2 \
     && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres,statsd]==$AIRFLOW_VERSION \
-    && pip install celery[redis]==4.3.0 \
-    && pip install gevent==1.3.6 \
-	&& pip install pandas==0.23.4 \
-	&& pip install paramiko==2.4.2 \
-	&& pip install psycopg2-binary==2.7.5 \
-	&& pip install pyodbc==4.0.24 \
+    && pip install celery[redis]==4.4.2 \
+    && pip install gevent==20.5.1 \
+	&& pip install pandas==0.25.3 \
+	&& pip install paramiko==2.7.1 \
+	&& pip install psycopg2-binary==2.8.5 \
+	&& pip install pyodbc==4.0.30 \
 	&& pip install python-ldap==3.2.0 \
-	&& pip install sshtunnel==0.1.4 \
-	&& pip install SQLAlchemy==1.3.11 \
-	&& pip install tableauserverclient==0.9 \
+	&& pip install sshtunnel==0.1.5 \
+	&& pip install SQLAlchemy==1.3.17 \
+	&& pip install tableauserverclient==0.11 \
 	&& pip install tableaudocumentapi==0.6 \
 	&& pip install tornado==5.1.1 \
     && apt-get purge --auto-remove -yqq $buildDeps \
