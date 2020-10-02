@@ -77,15 +77,15 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v3
+            - source: ebi_db_conn_v4
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
             - source: flask_secret_key_v1
               target: flask_secret_key
-            - source: freetds.conf_v1
+            - source: freetds.conf_v2
               target: freetds.conf
-            - source: odbc.ini_v1
+            - source: odbc.ini_v2
               target: odbc.ini
             - source: base_url_v1
               target: base_url
@@ -114,15 +114,15 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v3
+            - source: ebi_db_conn_v4
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
             - source: flask_secret_key_v1
               target: flask_secret_key
-            - source: freetds.conf_v1
+            - source: freetds.conf_v2
               target: freetds.conf
-            - source: odbc.ini_v1
+            - source: odbc.ini_v2
               target: odbc.ini
             - source: base_url_v1
               target: base_url
@@ -150,15 +150,15 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v3
+            - source: ebi_db_conn_v4
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
             - source: flask_secret_key_v1
               target: flask_secret_key
-            - source: freetds.conf_v1
+            - source: freetds.conf_v2
               target: freetds.conf
-            - source: odbc.ini_v1
+            - source: odbc.ini_v2
               target: odbc.ini
             - source: base_url_v1
               target: base_url
@@ -198,11 +198,11 @@ secrets:
         external: true
     flask_secret_key_v1:
         external: true
-    ebi_db_conn_v3:
+    ebi_db_conn_v4:
         external: true
-    freetds.conf_v1:
+    freetds.conf_v2:
         external: true
-    odbc.ini_v1:
+    odbc.ini_v2:
         external: true
     base_url_v1:
         external: true
