@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.11
+ARG AIRFLOW_VERSION=1.10.12
 ARG AIRFLOW_HOME=/usr/local/airflow
 
 # Define en_US.
@@ -60,6 +60,7 @@ RUN set -ex \
         netcat \
         locales \
         jq \
+        gnupg \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
