@@ -162,19 +162,25 @@ case "$1" in
   webserver)
     wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
     wait_for_redis
-    airflow initdb
+    airflow db init
     exec airflow webserver
     ;;
-  worker|scheduler)
+  scheduler)
     wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
     wait_for_redis
-    # To give the webserver time to run initdb.
+    # To give the webserver time to run db init.
     sleep 10
     exec airflow "$@"
     ;;
+  worker)
+    wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
+    wait_for_redis
+    sleep 10
+    exec airflow celery "$@"
+    ;;
   flower)
     wait_for_redis
-    exec airflow "$@"
+    exec airflow celery "$@"
     ;;
   version)
     exec airflow "$@"
