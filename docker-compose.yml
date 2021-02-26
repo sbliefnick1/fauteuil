@@ -12,7 +12,7 @@ services:
                 condition: on-failure
 
     postgres:
-        image: postgres:10.3
+        image: postgres:13.2
         environment:
             - POSTGRES_USER_FILE=/run/secrets/pg_user
             - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
@@ -37,7 +37,7 @@ services:
         command: postgres -c 'shared_buffers=256MB' -c 'max_connections=500'
 
     flower:
-        image: sbliefnick/fauteuil:latest
+        image: sbliefnick/fauteuil:v2
         depends_on:
             - redis
         networks:
@@ -51,7 +51,7 @@ services:
         command: flower
 
     webserver:
-        image: sbliefnick/fauteuil:latest
+        image: sbliefnick/fauteuil:v2
         depends_on:
             - postgres
             - redis
@@ -96,7 +96,7 @@ services:
         command: webserver
 
     scheduler:
-        image: sbliefnick/fauteuil:latest
+        image: sbliefnick/fauteuil:v2
         depends_on:
             - webserver
         networks:
@@ -133,7 +133,7 @@ services:
         command: scheduler
 
     worker:
-        image: sbliefnick/fauteuil:latest
+        image: sbliefnick/fauteuil:v2
         depends_on:
             - scheduler
         networks:
