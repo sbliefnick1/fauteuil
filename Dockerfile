@@ -5,14 +5,14 @@
 # SOURCE https://github.com/sbliefnick/fauteuil
 # Based on puckel/docker-airflow https://github.com/puckel/docker-airflow
 
-FROM python:3.7-slim
+FROM python:3.8-slim
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.12
+ARG AIRFLOW_VERSION=2.0.1
 ARG AIRFLOW_HOME=/usr/local/airflow
 
 # Define en_US.
@@ -66,23 +66,23 @@ RUN set -ex \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
-    && pip install Cython==0.29.19 \
-    && pip install pytz==2020.1 \
-    && pip install pyOpenSSL==19.1.0 \
+    && pip install Cython==0.29.21 \
+    && pip install pytz==2021.1 \
+    && pip install pyOpenSSL==20.0.1 \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.8 \
     && pip install click==7.1.2 \
-    && pip install pymssql==2.1.4 apache-airflow[celery,crypto,ldap,mssql,password,postgres,statsd]==$AIRFLOW_VERSION \
-    && pip install celery[redis]==4.4.2 \
-    && pip install gevent==20.5.1 \
-	&& pip install pandas==0.25.3 \
-	&& pip install paramiko==2.7.1 \
-	&& pip install psycopg2-binary==2.8.5 \
+    && pip install pymssql==2.1.5 apache-airflow[celery,crypto,ldap,mssql,odbc,password,postgres,ssh,statsd]==$AIRFLOW_VERSION \
+    && pip install celery[redis]==4.4.7 \
+    && pip install gevent==21.1.2 \
+	&& pip install pandas==1.2.2 \
+	&& pip install paramiko==2.7.2 \
+	&& pip install psycopg2-binary==2.8.6 \
 	&& pip install pyodbc==4.0.30 \
-	&& pip install python-ldap==3.2.0 \
-	&& pip install sshtunnel==0.1.5 \
-	&& pip install SQLAlchemy==1.3.17 \
-	&& pip install tableauserverclient==0.11 \
+	&& pip install python-ldap==3.3.1 \
+	&& pip install sshtunnel==0.4.0 \
+	&& pip install SQLAlchemy==1.3.23 \
+	&& pip install tableauserverclient==0.14.1 \
 	&& pip install tableaudocumentapi==0.6 \
 	&& pip install tornado==5.1.1 \
     && apt-get purge --auto-remove -yqq $buildDeps \
