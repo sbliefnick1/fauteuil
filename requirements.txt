@@ -1,6 +1,6 @@
 alembic==1.5.5
 amqp==2.6.1
-apache-airflow==2.0.1
+apache-airflow==2.0.2
 apache-airflow-providers-celery==1.0.1
 apache-airflow-providers-ftp==1.0.1
 apache-airflow-providers-http==1.1.0
