@@ -37,7 +37,7 @@ services:
         command: postgres -c 'shared_buffers=256MB' -c 'max_connections=500'
 
     flower:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:v2-0-1
         depends_on:
             - redis
         networks:
@@ -51,7 +51,7 @@ services:
         command: flower
 
     webserver:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:v2-0-1
         depends_on:
             - postgres
             - redis
@@ -77,7 +77,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v5
+            - source: ebi_db_conn_v6
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -96,7 +96,7 @@ services:
         command: webserver
 
     scheduler:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:v2-0-1
         depends_on:
             - webserver
         networks:
@@ -114,7 +114,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v5
+            - source: ebi_db_conn_v6
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -133,7 +133,7 @@ services:
         command: scheduler
 
     worker:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:v2-0-1
         depends_on:
             - scheduler
         networks:
@@ -150,7 +150,7 @@ services:
             restart_policy:
                 condition: on-failure
         secrets:
-            - source: ebi_db_conn_v5
+            - source: ebi_db_conn_v6
               target: ebi_db_conn
             - source: fernet_key_v1
               target: fernet_key
@@ -198,7 +198,7 @@ secrets:
         external: true
     flask_secret_key_v1:
         external: true
-    ebi_db_conn_v5:
+    ebi_db_conn_v6:
         external: true
     freetds.conf_v2:
         external: true
