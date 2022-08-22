@@ -14,6 +14,7 @@ ENV TERM linux
 # Airflow
 ARG AIRFLOW_VERSION=2.0.1
 ARG AIRFLOW_HOME=/usr/local/airflow
+ARG PYTHON_VERSION=3.8
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -72,7 +73,7 @@ RUN set -ex \
     && pip install ndg-httpsclient==0.5.1 \
     && pip install pyasn1==0.4.8 \
     && pip install click==7.1.2 \
-    && pip install pymssql==2.1.5 apache-airflow[celery,crypto,ldap,mssql,odbc,password,postgres,ssh,statsd]==$AIRFLOW_VERSION \
+    && pip install pymssql==2.1.5 apache-airflow[celery,crypto,ldap,mssql,odbc,password,postgres,ssh,statsd]==$AIRFLOW_VERSION --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt" \
     && pip install celery[redis]==4.4.7 \
     && pip install gevent==21.1.2 \
 	&& pip install pandas==1.2.2 \
