@@ -125,11 +125,11 @@ AUTH_ROLE_ADMIN = "Admin"
 EOF
 
 # Setup for automatic encryption
-GNUPGHOME=/var/nfsshare/gpg/.gnupg
-export GNUPGHOME
-gpg --batch --import /var/nfsshare/gpg/ebitabuser_sec.gpg
-gpg --batch --import /var/nfsshare/gpg/claro_healthcare_public_key.asc
-gpg --batch --yes --sign-key "Claro Healthcare"
+# GNUPGHOME=/var/nfsshare/gpg/.gnupg
+# export GNUPGHOME
+# gpg --batch --import /var/nfsshare/gpg/ebitabuser_sec.gpg
+# gpg --batch --import /var/nfsshare/gpg/claro_healthcare_public_key.asc
+# gpg --batch --yes --sign-key "Claro Healthcare"
 
 # Install custom python package if requirements.txt is present
 if [[ -e "/requirements.txt" ]]; then
