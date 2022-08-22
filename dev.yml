@@ -11,25 +11,25 @@ services:
                 constraints: [node.labels.type == postgres]
 
     flower:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:dev-latest
         deploy:
             placement:
                 constraints: [node.role == manager]
 
     webserver:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:dev-latest
         deploy:
             placement:
                 constraints: [node.role == worker]
 
     scheduler:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:dev-latest
         deploy:
             placement:
                 constraints: [node.role == worker]
 
     worker:
-        image: sbliefnick/fauteuil:v2
+        image: sbliefnick/fauteuil:dev-latest
         deploy:
             replicas: 2
             placement:
