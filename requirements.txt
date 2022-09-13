@@ -50,7 +50,7 @@ Flask-OpenID==1.2.5
 Flask-SQLAlchemy==2.4.4
 flask-swagger==0.2.14
 Flask-WTF==0.14.3
-flower==0.9.7
+flower==1.2.0
 funcsigs==1.0.2
 future==0.18.2
 gevent==21.1.2
