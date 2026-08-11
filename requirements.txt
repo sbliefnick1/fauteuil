@@ -72,7 +72,7 @@ kombu==4.6.11
 lazy-object-proxy==1.4.3
 ldap3==2.9
 lockfile==0.12.2
-Mako==1.1.4
+Mako==1.2.2
 Markdown==2.6.11
 MarkupSafe==1.1.1
 marshmallow==3.10.0
