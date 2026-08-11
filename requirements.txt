@@ -31,7 +31,7 @@ commonmark==0.9.1
 configparser==3.5.3
 connexion==2.7.0
 croniter==0.3.37
-cryptography==3.4.5
+cryptography==39.0.1
 Cython==0.29.21
 defusedxml==0.6.0
 dill==0.3.3
